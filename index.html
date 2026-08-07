@@ -18,7 +18,7 @@
         <h1>APEX LEGENDS OBS ROULETTE</h1>
       </div>
       <div class="header-controls">
-        <button id="obsGuideBtn" class="btn">📹 OBS 整合教學</button>
+        <button id="obsGuideBtn" class="btn">OBS 整合教學</button>
       </div>
     </header>
 
@@ -30,19 +30,19 @@
 
         <!-- Result Combination Banner -->
         <div id="resultBanner" class="result-banner">
-          <div class="result-title">🎯 英雄與槍械隨機組合 🎯</div>
+          <div class="result-title">英雄與槍械隨機組合</div>
           <div id="resultCombination" class="result-combination">請點擊下方旋轉按鈕！</div>
         </div>
 
         <!-- Twitch Realtime Live Notice Banner -->
         <div id="twitchNoticeBanner" class="twitch-notice-banner" style="display: none;">
-          <span id="twitchNoticeText">🟣 Twitch 實況動態訊息</span>
+          <span id="twitchNoticeText">Twitch 實況動態訊息</span>
         </div>
 
         <div class="wheels-container">
           <!-- Top: Horizontal Hero Selector Reel -->
           <div class="hero-reel-card">
-            <div class="wheel-title">⚡ 英雄卡片選擇器 (HERO SELECTOR)</div>
+            <div class="wheel-title">英雄卡片選擇器 (HERO SELECTOR)</div>
             <div class="hero-reel-wrapper">
               <canvas id="heroReelCanvas"></canvas>
             </div>
@@ -50,7 +50,7 @@
 
           <!-- Bottom: Horizontal Weapon Selector Reel -->
           <div class="hero-reel-card">
-            <div class="wheel-title">⚔️ 槍械卡片選擇器 (WEAPON SELECTOR)</div>
+            <div class="wheel-title">槍械卡片選擇器 (WEAPON SELECTOR)</div>
             <div class="hero-reel-wrapper">
               <canvas id="weaponReelCanvas"></canvas>
             </div>
@@ -60,7 +60,7 @@
         <!-- Spin Action Bar -->
         <div class="spin-action-bar">
           <button id="spinBothBtn" class="btn btn-primary btn-large-spin">
-            🔥 一鍵連動抽英雄與槍械 (SPIN BOTH) 🔥
+            一鍵連動抽英雄與槍械 (SPIN BOTH)
           </button>
           <div class="spin-buttons-group">
             <button id="spinLegendBtn" class="btn">單獨抽英雄 (Spin Hero)</button>
@@ -74,7 +74,7 @@
         <div class="tab-nav">
           <button class="tab-btn active" data-tab="tabLegends">英雄庫</button>
           <button class="tab-btn" data-tab="tabWeapons">槍械庫</button>
-          <button class="tab-btn" data-tab="tabTwitch">🟣 Twitch 連動</button>
+          <button class="tab-btn" data-tab="tabTwitch">Twitch 連動</button>
           <button class="tab-btn" data-tab="tabSettings">設定</button>
         </div>
 
@@ -103,11 +103,11 @@
         <!-- Tab 3: Twitch Integration -->
         <div id="tabTwitch" class="tab-content">
           <div id="twitchStatusBadge" class="twitch-status-badge disconnected">
-            ⚪ Twitch 未連線
+            Twitch 未連線
           </div>
 
           <div class="setting-group">
-            <label for="twitchChannelInput">🎮 Twitch 頻道名稱 (Channel ID)</label>
+            <label for="twitchChannelInput">Twitch 頻道名稱 (Channel ID)</label>
             <div style="display: flex; gap: 8px;">
               <input type="text" id="twitchChannelInput" placeholder="例如: arnoldtw1124" style="flex: 1; padding: 8px 12px; background: var(--apex-card); border: 1px solid var(--apex-border); color: #fff; border-radius: var(--radius-md);">
               <button id="connectTwitchBtn" class="btn btn-primary" style="padding: 8px 16px;">連線</button>
@@ -115,7 +115,7 @@
           </div>
 
           <div class="setting-group">
-            <label for="twitchRewardInput">🎁 忠誠點數兌換項目名稱 (Reward Name)</label>
+            <label for="twitchRewardInput">忠誠點數兌換項目名稱 (Reward Name)</label>
             <input type="text" id="twitchRewardInput" value="抽輪盤" placeholder="例如: 抽輪盤" style="padding: 8px 12px; background: var(--apex-card); border: 1px solid var(--apex-border); color: #fff; border-radius: var(--radius-md);">
             <span style="font-size: 0.8rem; color: var(--text-sub);">觀眾於 Twitch Live 兌換此名稱點數時自動觸發抽籤</span>
           </div>
@@ -131,12 +131,12 @@
         <!-- Tab 4: Settings -->
         <div id="tabSettings" class="tab-content">
           <div class="setting-group">
-            <label for="volumeSlider">🔊 音效音量</label>
-            <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.5">
+            <label for="volumeSlider">音效音量</label>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.65">
           </div>
 
           <div class="setting-group">
-            <label for="durationSlider">⏱️ 旋轉時間 (毫秒)</label>
+            <label for="durationSlider">旋轉時間 (毫秒)</label>
             <input type="range" id="durationSlider" min="2000" max="8000" step="500" value="4500">
           </div>
         </div>
@@ -149,7 +149,7 @@
     <div class="modal-box">
       <div class="modal-header">
         <h2>OBS Studio 插件整合教學</h2>
-        <button id="closeModalBtn" class="btn">✖ 關閉</button>
+        <button id="closeModalBtn" class="btn">關閉</button>
       </div>
       <div class="modal-body">
         <p>這款雙橫向選單可完美整合至 OBS Studio 做為實況圖層或控制面板：</p>
@@ -162,7 +162,7 @@
           <li>
             <strong>Twitch 忠誠點數與聊天室連動：</strong>
             <br>
-            點擊右側側邊欄 <code>🟣 Twitch 連動</code>，輸入您的 Twitch 頻道名稱（如 <code>arnoldtw1124</code>）並點擊連線！觀眾兌換忠誠點數或在聊天室輸入 <code>!spin</code> 即會自動啟動輪盤！
+            點擊右側側邊欄 <code>Twitch 連動</code>，輸入您的 Twitch 頻道名稱（如 <code>arnoldtw1124</code>）並點擊連線！觀眾兌換忠誠點數或在聊天室輸入 <code>!spin</code> 即會自動啟動輪盤！
           </li>
           <li>
             <strong>設定為 OBS 實況圖層 (Overlay Mode)：</strong>

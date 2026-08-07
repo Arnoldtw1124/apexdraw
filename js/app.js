@@ -2,6 +2,7 @@
  * Main Application Controller for Apex Legends OBS Plugin
  * Manages Dual Horizontal Carousels (Hero Reel & Weapon Reel),
  * Audio, Hotkeys, Filters, Twitch Integration & LocalStorage persistence.
+ * Cleaned: All emojis removed per user request.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -180,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (weaponReel) {
-      weaponReel.duration = state.spinDuration + 600; // Weapon finishes slightly after hero
+      weaponReel.duration = state.spinDuration + 600;
       weaponReel.setItems(getFilteredWeapons());
       weaponReel.spin();
     }
@@ -222,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (banner && resultText) {
       let text = '';
       if (state.lastSelectedLegend && state.lastSelectedWeapon) {
-        text = `【${state.lastSelectedLegend.name}】 ⚔️ 【${state.lastSelectedWeapon.name}】`;
+        text = `【${state.lastSelectedLegend.name}】 + 【${state.lastSelectedWeapon.name}】`;
       } else if (state.lastSelectedLegend) {
         text = `英雄：${state.lastSelectedLegend.name}`;
       } else if (state.lastSelectedWeapon) {

@@ -1,15 +1,15 @@
 /**
  * Apex Legends Dataset
- * Includes all 29 weapon assets.
+ * Cleaned: All emojis removed per user request.
  */
 
 const APEX_DATA = {
   classes: {
-    assault: { name: '突擊 (Assault)', color: '#FF4A4A', icon: '⚔️' },
-    skirmisher: { name: '游擊 (Skirmisher)', color: '#4AF2FF', icon: '⚡' },
-    recon: { name: '偵察 (Recon)', color: '#FFD44A', icon: '🎯' },
-    support: { name: '支援 (Support)', color: '#4AFF85', icon: '🛡️' },
-    controller: { name: '控場 (Controller)', color: '#B84AFF', icon: '🔒' }
+    assault: { name: '突擊 (Assault)', color: '#FF4A4A' },
+    skirmisher: { name: '游擊 (Skirmisher)', color: '#4AF2FF' },
+    recon: { name: '偵察 (Recon)', color: '#FFD44A' },
+    support: { name: '支援 (Support)', color: '#4AFF85' },
+    controller: { name: '控場 (Controller)', color: '#B84AFF' }
   },
 
   legends: [

@@ -4,7 +4,7 @@
  * 1. Twitch Channel Points Redemptions (忠誠點數兌換)
  * 2. Twitch Chat Commands (!spin, !spinhero, !spinweapon)
  * 
- * Works 100% client-side with ZERO external server required!
+ * Cleaned: All emojis removed per user request.
  */
 
 class TwitchIntegration {
@@ -34,7 +34,7 @@ class TwitchIntegration {
       this.disconnect();
     }
 
-    this.updateStatus('connecting', `🟡 正在連線至 Twitch 頻道 #${this.channel}...`);
+    this.updateStatus('connecting', `正在連線至 Twitch 頻道 #${this.channel}...`);
 
     try {
       this.ws = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
@@ -51,16 +51,16 @@ class TwitchIntegration {
 
       this.ws.onerror = (error) => {
         console.error('Twitch WebSocket Error:', error);
-        this.updateStatus('error', '🔴 Twitch 連線發生錯誤');
+        this.updateStatus('error', 'Twitch 連線發生錯誤');
       };
 
       this.ws.onclose = () => {
         this.isConnected = false;
-        this.updateStatus('disconnected', '⚪ Twitch 已斷開連線');
+        this.updateStatus('disconnected', 'Twitch 已斷開連線');
       };
     } catch (e) {
       console.error('Twitch Connection Failed:', e);
-      this.updateStatus('error', '🔴 無法建立 WebSocket 連線');
+      this.updateStatus('error', '無法建立 WebSocket 連線');
     }
   }
 
@@ -71,7 +71,7 @@ class TwitchIntegration {
       this.ws = null;
     }
     this.isConnected = false;
-    this.updateStatus('disconnected', '⚪ Twitch 未連線');
+    this.updateStatus('disconnected', 'Twitch 未連線');
   }
 
   handleMessage(rawMessage) {
@@ -91,9 +91,9 @@ class TwitchIntegration {
       // Check for JOIN confirmation
       if (line.includes(`JOIN #${this.channel}`)) {
         this.isConnected = true;
-        this.updateStatus('connected', `🟢 已成功連線至 Twitch 頻道: #${this.channel}`);
+        this.updateStatus('connected', `已成功連線至 Twitch 頻道: #${this.channel}`);
         if (this.onTwitchNotice) {
-          this.onTwitchNotice(`🎉 成功監聽 Twitch 頻道 #${this.channel} 的忠誠點數與指令！`);
+          this.onTwitchNotice(`成功監聽 Twitch 頻道 #${this.channel} 的忠誠點數與指令！`);
         }
         return;
       }
@@ -141,7 +141,7 @@ class TwitchIntegration {
 
       if (customRewardId || rewardMsg === 'highlighted-message' || (this.enableReward && messageContent.includes(this.rewardName))) {
         if (this.onTwitchNotice) {
-          this.onTwitchNotice(`🎁 觀眾 @${username} 兌換了忠誠點數【${this.rewardName}】！`);
+          this.onTwitchNotice(`觀眾 @${username} 兌換了忠誠點數【${this.rewardName}】！`);
         }
         if (this.onSpinBoth) this.onSpinBoth();
         return;
@@ -152,13 +152,13 @@ class TwitchIntegration {
         const cmd = messageContent.toLowerCase();
 
         if (cmd === '!spin' || cmd === '!apex' || cmd === '!抽' || cmd === '!spinboth') {
-          if (this.onTwitchNotice) this.onTwitchNotice(`🎮 觀眾 @${username} 觸發了指令 !spin`);
+          if (this.onTwitchNotice) this.onTwitchNotice(`觀眾 @${username} 觸發了指令 !spin`);
           if (this.onSpinBoth) this.onSpinBoth();
         } else if (cmd === '!spinhero' || cmd === '!hero' || cmd === '!抽英雄') {
-          if (this.onTwitchNotice) this.onTwitchNotice(`⚡ 觀眾 @${username} 觸發了指令 !spinhero`);
+          if (this.onTwitchNotice) this.onTwitchNotice(`觀眾 @${username} 觸發了指令 !spinhero`);
           if (this.onSpinLegend) this.onSpinLegend();
         } else if (cmd === '!spinweapon' || cmd === '!weapon' || cmd === '!抽槍械') {
-          if (this.onTwitchNotice) this.onTwitchNotice(`⚔️ 觀眾 @${username} 觸發了指令 !spinweapon`);
+          if (this.onTwitchNotice) this.onTwitchNotice(`觀眾 @${username} 觸發了指令 !spinweapon`);
           if (this.onSpinWeapon) this.onSpinWeapon();
         }
       }
