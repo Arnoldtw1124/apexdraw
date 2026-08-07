@@ -1,9 +1,9 @@
 /**
  * Twitch Integration Module for Apex OBS Visual Roulette
- * Multi-Protocol Listener supporting:
- * 1. Twitch IRC WebSocket (Chat Commands & Highlighted Messages)
- * 2. Twitch PubSub / EventSub WebSocket (0-typing Single-Click Point Redemptions!)
- * 3. StreamElements Socket API (0-typing Single-Click Point Redemptions!)
+ * Handles Twitch Channel Points Redemptions, Custom Rewards & Chat Commands.
+ * 
+ * Strictly checks configured Reward Name so unselected Twitch rewards
+ * (like default "醒目標示我的訊息") will NOT trigger the wheel.
  */
 
 class TwitchIntegration {
@@ -86,11 +86,8 @@ class TwitchIntegration {
 
       this.pubsubWs.onopen = () => {
         this.log('PubSub 點數專用 WebSocket 已開啟！');
-
-        // Fetch Twitch Channel ID via GQL/API if OAuth token is provided or public topic
         this.subscribePubSubTopics();
 
-        // Keepalive PING every 4 minutes
         if (this.pingInterval) clearInterval(this.pingInterval);
         this.pingInterval = setInterval(() => {
           if (this.pubsubWs && this.pubsubWs.readyState === WebSocket.OPEN) {
@@ -118,7 +115,6 @@ class TwitchIntegration {
 
   async subscribePubSubTopics() {
     try {
-      // Get Channel ID from Twitch GQL (Public endpoint)
       const res = await fetch('https://gql.twitch.tv/gql', {
         method: 'POST',
         headers: { 'Client-Id': 'kimne78kx3ncx6brogo4mv6wki5h1ko' },
@@ -130,7 +126,7 @@ class TwitchIntegration {
       const userId = data?.data?.user?.id;
 
       if (userId) {
-        this.log(`已成功取得 Twitch 頻道 ID (${userId})，開始訂閱 0 打字單擊點數事件...`);
+        this.log(`已成功取得 Twitch 頻道 ID (${userId})，訂閱忠誠點數事件...`);
 
         const listenMsg = {
           type: 'LISTEN',
@@ -146,13 +142,12 @@ class TwitchIntegration {
 
         if (this.pubsubWs && this.pubsubWs.readyState === WebSocket.OPEN) {
           this.pubsubWs.send(JSON.stringify(listenMsg));
-          this.log(`已訂閱 community-points-channel-v1.${userId}`);
         }
       } else {
         this.log(`無法從 Twitch 取得 #${this.channel} 的 ID`);
       }
     } catch (e) {
-      this.log(`GQL 頻道 ID 取得失敗 (可能網路限制): ${e.message}`);
+      this.log(`GQL 頻道 ID 取得失敗: ${e.message}`);
     }
   }
 
@@ -173,36 +168,34 @@ class TwitchIntegration {
   handlePubSubMessage(rawMsg) {
     try {
       const msg = JSON.parse(rawMsg);
-
       if (msg.type === 'PONG') return;
 
       if (msg.type === 'MESSAGE' && msg.data) {
-        const topic = msg.data.topic || '';
         const payload = JSON.parse(msg.data.message || '{}');
-
-        this.log(`PubSub 事件 [${topic}]: ${payload.type || 'unknown'}`);
 
         if (payload.type === 'reward-redeemed' || payload.type === 'custom-reward-created') {
           const redemption = payload.data?.redemption;
           const rewardTitle = redemption?.reward?.title || '';
           const userName = redemption?.user?.display_name || redemption?.user?.login || '觀眾';
 
-          this.log(`🎉 收到 0 打字單擊點數兌換！來自 @${userName} (兌換項目: "${rewardTitle}")`);
+          this.log(`收到 PubSub 點數兌換事件: "${rewardTitle}" 來自 @${userName}`);
 
-          const cleanReward = this.rewardName ? this.rewardName.toLowerCase().trim() : '';
+          const cleanTarget = this.rewardName ? this.rewardName.toLowerCase().trim() : '';
           const cleanTitle = rewardTitle.toLowerCase().trim();
 
-          if (!cleanReward || cleanTitle.includes(cleanReward) || cleanReward.includes(cleanTitle)) {
+          // STRICT CHECK: Only trigger if the redeemed reward matches configured name!
+          if (cleanTarget && (cleanTitle.includes(cleanTarget) || cleanTarget.includes(cleanTitle))) {
+            this.log(`🎯 PubSub 匹配成功！名稱吻合: "${rewardTitle}"`);
             if (this.onTwitchNotice) {
-              this.onTwitchNotice(`觀眾 @${userName} 兌換了忠誠點數【${rewardTitle || this.rewardName}】！`);
+              this.onTwitchNotice(`觀眾 @${userName} 兌換了忠誠點數【${rewardTitle}】！`);
             }
             if (this.onSpinBoth) this.onSpinBoth();
+          } else {
+            this.log(`ℹ️ PubSub 忽略未設定的點數項目: "${rewardTitle}" (目前設定: "${this.rewardName}")`);
           }
         }
       }
-    } catch (e) {
-      // Parsing fallback
-    }
+    } catch (e) {}
   }
 
   handleIRCMessage(rawMessage) {
@@ -260,9 +253,9 @@ class TwitchIntegration {
         messageContent = rawLine.substring(msgIndex + ` PRIVMSG #${this.channel} :`.length).trim();
       }
 
-      this.log(`聊天室 [@${username}]: "${messageContent}" (msg-id: ${tags['msg-id'] || '無'}, custom-reward-id: ${tags['custom-reward-id'] || '無'})`);
+      this.log(`聊天室 [@${username}]: "${messageContent}" (msg-id: ${tags['msg-id'] || '無'})`);
 
-      // Detect IRC channel point tags
+      // Detect IRC tags
       const customRewardId = tags['custom-reward-id'];
       const msgId = tags['msg-id'];
 
@@ -272,17 +265,25 @@ class TwitchIntegration {
       const cleanContent = messageContent.toLowerCase().trim();
       const cleanTargetReward = this.rewardName ? this.rewardName.toLowerCase().trim() : '';
 
-      const isRewardNameMatch = cleanTargetReward && (
-        cleanContent.includes(cleanTargetReward) || 
-        cleanContent === `!${cleanTargetReward}`
-      );
+      // STRICT MATCHING: Check if user configured "醒目" OR if text matches configured reward name
+      const isConfiguredAsHighlight = cleanTargetReward.includes('醒目') || cleanTargetReward.includes('highlight');
 
-      if (isCustomReward || isHighlightedMsg || isRewardNameMatch) {
-        const matchType = isCustomReward ? '自訂點數標籤' : isHighlightedMsg ? '醒目標示' : '名稱匹配';
-        this.log(`🎯 觸發點數兌換！來自 @${username} (${matchType})`);
-        
+      let isMatched = false;
+
+      if (isConfiguredAsHighlight && isHighlightedMsg) {
+        isMatched = true;
+      } else if (cleanTargetReward && (cleanContent.includes(cleanTargetReward) || cleanContent === `!${cleanTargetReward}`)) {
+        isMatched = true;
+      } else if (isCustomReward) {
+        if (!cleanTargetReward || cleanContent.includes(cleanTargetReward)) {
+          isMatched = true;
+        }
+      }
+
+      if (isMatched) {
+        this.log(`🎯 嚴格匹配成功！來自 @${username} (匹配項目: ${this.rewardName})`);
         if (this.onTwitchNotice) {
-          this.onTwitchNotice(`觀眾 @${username} 兌換了忠誠點數【${this.rewardName || '點數兌換'}】！`);
+          this.onTwitchNotice(`觀眾 @${username} 兌換了忠誠點數【${this.rewardName}】！`);
         }
         if (this.onSpinBoth) this.onSpinBoth();
         return;
