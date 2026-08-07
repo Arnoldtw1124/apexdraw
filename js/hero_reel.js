@@ -264,7 +264,7 @@ class HeroReel {
     } else {
       ctx.rect(x, y, w, h);
     }
-    ctx.fillStyle = 'rgba(20, 23, 32, 0.96)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0)';
     ctx.fill();
 
     // Only draw border/glow on the winner card
