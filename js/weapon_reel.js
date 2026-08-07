@@ -2,8 +2,7 @@
  * Horizontal Weapon Selection Reel Engine
  * Matches the exact AAA horizontal carousel feel of the Hero Selector.
  * 
- * Configured specifically for weapon webp image files in image/ folder:
- * e.g., image/R-301_Carbine.webp, image/30-30_Repeater.webp, etc.
+ * Features automatic image loading with fallback badge rendering so cards are NEVER blank.
  */
 
 class WeaponReel {
@@ -37,6 +36,10 @@ class WeaponReel {
 
     this.resizeCanvas();
     window.addEventListener('resize', () => this.resizeCanvas());
+    
+    // Delayed resize check to ensure non-zero dimensions after CSS layout reflow
+    setTimeout(() => this.resizeCanvas(), 50);
+    setTimeout(() => this.resizeCanvas(), 300);
   }
 
   /**
@@ -90,6 +93,7 @@ class WeaponReel {
       const tryNextCandidate = () => {
         if (candidateIndex >= candidates.length) {
           this.imageCache[key] = 'FAILED';
+          this.draw();
           return;
         }
 
@@ -124,7 +128,10 @@ class WeaponReel {
     const parent = this.canvas.parentElement;
     if (!parent) return;
 
-    const width = parent.clientWidth || 800;
+    let width = parent.clientWidth || parent.offsetWidth;
+    if (!width || width < 200) {
+      width = parent.parentElement ? (parent.parentElement.clientWidth || 800) : 800;
+    }
     const height = 260;
     const dpr = window.devicePixelRatio || 1;
 
@@ -339,7 +346,7 @@ class WeaponReel {
 
       ctx.fillStyle = 'rgba(255,255,255,0.7)';
       ctx.font = `bold ${11 * dpr}px sans-serif`;
-      ctx.fillText('WEAPON', x + w / 2, avatarY + targetH / 2 + 18 * dpr);
+      ctx.fillText(item.name || 'WEAPON', x + w / 2, avatarY + targetH / 2 + 18 * dpr);
 
       ctx.restore();
     }

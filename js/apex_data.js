@@ -1,7 +1,6 @@
 /**
  * Apex Legends Dataset
- * Unified weapon names matching user's custom names list.
- * Nessie easter egg weapon removed.
+ * Matches exact 28 weapon files present in image/ folder.
  */
 
 const APEX_DATA = {
@@ -64,45 +63,44 @@ const APEX_DATA = {
   },
 
   weapons: [
-    // AR
+    // AR (突擊步槍)
     { id: 'r301', fileKey: 'R-301_Carbine', name: 'R-301', category: 'ar', color: '#FF6B6B' },
     { id: 'flatline', fileKey: 'VK-47_Flatline', name: '平行步槍', category: 'ar', color: '#EE5253' },
     { id: 'hemlok', fileKey: 'Hemlok_Burst_AR', name: '汗洛', category: 'ar', color: '#FF7979' },
     { id: 'havoc', fileKey: 'HAVOC_Rifle', name: '哈博克', category: 'ar', color: '#FF5252' },
     { id: 'nemesis', fileKey: 'Nemesis_Burst_AR', name: '死敵', category: 'ar', color: '#E84118' },
 
-    // SMG
+    // SMG (衝鋒槍)
     { id: 'r99', fileKey: 'R-99_SMG', name: 'R-99', category: 'smg', color: '#48DBFB' },
     { id: 'alternator', fileKey: 'Alternator_SMG', name: '轉換者', category: 'smg', color: '#0ABDE3' },
     { id: 'car', fileKey: 'C.A.R._SMG', name: 'CAR', category: 'smg', color: '#00D2D3' },
     { id: 'volt', fileKey: 'Volt_SMG', name: '電能衝鋒槍', category: 'smg', color: '#54A0FF' },
     { id: 'prowler', fileKey: 'Prowler_Burst_PDW', name: '獵獸', category: 'smg', color: '#2E86DE' },
 
-    // LMG
+    // LMG (輕機槍)
     { id: 'spitfire', fileKey: 'M600_Spitfire', name: '噴火槍', category: 'lmg', color: '#1DD1A1' },
-    { id: 'devotion', fileKey: 'Devotion_LMG', name: '專注輕機槍', category: 'lmg', color: '#10AC84' },
     { id: 'lstar', fileKey: 'L-STAR_EMG', name: 'L-STAR', category: 'lmg', color: '#2ED573' },
     { id: 'rampage', fileKey: 'Rampage_LMG', name: '狂暴', category: 'lmg', color: '#26DE81' },
 
-    // Marksman
+    // Marksman (神射手步槍)
     { id: 'g7', fileKey: 'G7_Scout', name: 'G7', category: 'marksman', color: '#FECA57' },
     { id: 'triple_take', fileKey: 'Triple_Take', name: '三重擊', category: 'marksman', color: '#FF9F43' },
     { id: 'repeater3030', fileKey: '30-30_Repeater', name: '30-30', category: 'marksman', color: '#F39C12' },
     { id: 'bocek', fileKey: 'Bocek_Compound_Bow', name: '博切克', category: 'marksman', color: '#E67E22' },
 
-    // Sniper
+    // Sniper (狙擊槍)
     { id: 'sentinel', fileKey: 'Sentinel', name: '哨兵', category: 'sniper', color: '#9B59B6' },
     { id: 'longbow', fileKey: 'Longbow_DMR', name: '長弓', category: 'sniper', color: '#8E44AD' },
     { id: 'charge_rifle', fileKey: 'Charge_Rifle', name: '電能步槍', category: 'sniper', color: '#A55EEA' },
     { id: 'kraber', fileKey: 'Kraber_.50-Cal_Sniper', name: '克萊柏', category: 'sniper', color: '#8854D0' },
 
-    // Shotgun
+    // Shotgun (霰彈槍)
     { id: 'peacekeeper', fileKey: 'Peacekeeper', name: '和平使者', category: 'shotgun', color: '#FF4757' },
     { id: 'mastiff', fileKey: 'Mastiff_Shotgun', name: '獒犬', category: 'shotgun', color: '#FF6B81' },
     { id: 'eva8', fileKey: 'EVA-8_Auto', name: 'EVA-8', category: 'shotgun', color: '#ED4C67' },
     { id: 'mozambique', fileKey: 'Mozambique_Shotgun', name: '莫三比克', category: 'shotgun', color: '#B83280' },
 
-    // Pistol
+    // Pistol (手槍)
     { id: 'wingman', fileKey: 'Wingman', name: '小幫手', category: 'pistol', color: '#FFA502' },
     { id: 're45', fileKey: 'RE-45_Auto', name: 'RE-45', category: 'pistol', color: '#FF7F50' },
     { id: 'p2020', fileKey: 'P2020', name: 'P2020', category: 'pistol', color: '#E15F41' }

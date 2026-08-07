@@ -38,6 +38,10 @@ class HeroReel {
 
     this.resizeCanvas();
     window.addEventListener('resize', () => this.resizeCanvas());
+
+    // Delayed resize check to ensure non-zero dimensions after CSS layout reflow
+    setTimeout(() => this.resizeCanvas(), 50);
+    setTimeout(() => this.resizeCanvas(), 300);
   }
 
   preloadImages(forceReload = false) {
@@ -84,6 +88,7 @@ class HeroReel {
       const tryNextCandidate = () => {
         if (candidateIndex >= candidates.length) {
           this.imageCache[key] = 'FAILED';
+          this.draw();
           return;
         }
 
@@ -118,7 +123,10 @@ class HeroReel {
     const parent = this.canvas.parentElement;
     if (!parent) return;
 
-    const width = parent.clientWidth || 800;
+    let width = parent.clientWidth || parent.offsetWidth;
+    if (!width || width < 200) {
+      width = parent.parentElement ? (parent.parentElement.clientWidth || 800) : 800;
+    }
     const height = 260;
     const dpr = window.devicePixelRatio || 1;
 
@@ -278,7 +286,7 @@ class HeroReel {
     }
     ctx.stroke();
 
-    // Image container dimensions (expanded height for portrait focus)
+    // Image container dimensions
     const imgObj = item.id ? this.imageCache[item.id] : null;
     const destX = x + 6 * dpr;
     const avatarY = y + 6 * dpr;
@@ -330,7 +338,7 @@ class HeroReel {
       ctx.restore();
     }
 
-    // Hero Name Footer (Class tag bar removed for clean full-portrait view)
+    // Hero Name Footer
     ctx.fillStyle = isWinner ? '#FFD44A' : '#FFFFFF';
     ctx.font = `bold ${15 * dpr}px "Noto Sans TC", sans-serif`;
     ctx.textAlign = 'center';
