@@ -69,14 +69,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (savedLegendIds) {
         const ids = JSON.parse(savedLegendIds);
-        state.activeLegends = APEX_DATA.legends.filter(l => ids.includes(l.id));
+        const valid = APEX_DATA.legends.filter(l => ids.includes(l.id));
+        state.activeLegends = valid.length > 0 ? valid : [...APEX_DATA.legends];
       } else {
         state.activeLegends = [...APEX_DATA.legends];
       }
 
       if (savedWeaponIds) {
         const ids = JSON.parse(savedWeaponIds);
-        state.activeWeapons = APEX_DATA.weapons.filter(w => ids.includes(w.id));
+        const valid = APEX_DATA.weapons.filter(w => ids.includes(w.id));
+        state.activeWeapons = valid.length > 0 ? valid : [...APEX_DATA.weapons];
       } else {
         state.activeWeapons = [...APEX_DATA.weapons];
       }
@@ -308,6 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           state.activeLegends = state.activeLegends.filter(l => l.id !== legend.id);
         }
+        if (state.activeLegends.length === 0) state.activeLegends = [...APEX_DATA.legends];
         saveState();
         if (heroReel) heroReel.setItems(getFilteredLegends());
       });
@@ -342,6 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           state.activeWeapons = state.activeWeapons.filter(w => w.id !== weapon.id);
         }
+        if (state.activeWeapons.length === 0) state.activeWeapons = [...APEX_DATA.weapons];
         saveState();
         if (weaponReel) weaponReel.setItems(getFilteredWeapons());
       });
@@ -365,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (deselectAllLegendsBtn) {
     deselectAllLegendsBtn.addEventListener('click', () => {
-      state.activeLegends = [];
+      state.activeLegends = [...APEX_DATA.legends];
       saveState();
       renderLegendListEditor();
       if (heroReel) heroReel.setItems(getFilteredLegends());
@@ -386,7 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (deselectAllWeaponsBtn) {
     deselectAllWeaponsBtn.addEventListener('click', () => {
-      state.activeWeapons = [];
+      state.activeWeapons = [...APEX_DATA.weapons];
       saveState();
       renderWeaponListEditor();
       if (weaponReel) weaponReel.setItems(getFilteredWeapons());
