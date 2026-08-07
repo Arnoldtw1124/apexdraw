@@ -21,7 +21,6 @@
         <button id="toggleViewModeBtn" class="btn" style="background: rgba(16, 185, 129, 0.2); border-color: #10B981; color: #6EE7B7;">
           🎥 切換直播觀眾畫面
         </button>
-        <button id="obsGuideBtn" class="btn">OBS 整合教學</button>
       </div>
     </header>
 
@@ -219,43 +218,6 @@
         </div>
       </aside>
     </main>
-  </div>
-
-  <!-- OBS Guide Modal -->
-  <div id="obsGuideModal" class="modal-overlay">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h2>OBS Studio 插件整合教學</h2>
-        <button id="closeModalBtn" class="btn">關閉</button>
-      </div>
-      <div class="modal-body">
-        <p>這款雙橫向選單可完美整合至 OBS Studio 做為實況圖層或控制面板：</p>
-        <ol>
-          <li>
-            <strong>自訂圖片：</strong>
-            <br>
-            您可將英雄/槍械圖片放置於 <code>image/</code> 資料夾中。
-          </li>
-          <li>
-            <strong>Twitch 忠誠點數連動：</strong>
-            <br>
-            點擊右側側邊欄 <code>Twitch 連動</code>，填入您的頻道名稱（如 <code>arnold1124</code>）並點擊連線！觀眾兌換忠誠點數即會自動觸發排隊抽籤！
-          </li>
-          <li>
-            <strong>設定為 OBS 實況圖層（畫面呈現）：</strong>
-            <br>
-            在 OBS「來源」視窗點擊 <code>+</code> &rarr; 選擇 <code>瀏覽器</code>。
-            網址填寫 <code>http://localhost:8000/</code>。
-          </li>
-          <li>
-            <strong>設定為 OBS 獨立控制面板（實況主控場）：</strong>
-            <br>
-            在 OBS 頂部選單點擊 <code>停駐視窗 (D)</code> &rarr; <code>自訂瀏覽器停駐點...</code>。
-            網址填寫 <code>http://localhost:8000/?mode=dock</code>！
-          </li>
-        </ol>
-      </div>
-    </div>
   </div>
 
   <!-- JavaScript Scripts: Load Order Matters! wheel.js must be before hero_reel & weapon_reel -->
