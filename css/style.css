@@ -69,9 +69,10 @@ body {
   border: 1.5px solid rgba(255, 70, 85, 0.5);
   border-radius: var(--radius-lg);
   padding: 12px;
-  gap: 10px;
+  gap: 8px;
   box-shadow: 0 6px 25px rgba(0, 0, 0, 0.6);
   height: 100%;
+  flex-direction: column;
 }
 
 .main-content {
@@ -151,6 +152,7 @@ body {
   align-items: center;
   border-bottom: 1px solid var(--apex-border);
   padding-bottom: 6px;
+  flex-shrink: 0;
 }
 
 .overlay-queue-title {
@@ -180,14 +182,15 @@ body {
 
 .overlay-active-card {
   background: rgba(16, 185, 129, 0.15);
-  border: 1px solid #10B981;
+  border: 1.5px solid #10B981;
   border-radius: var(--radius-md);
-  padding: 10px 12px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .active-badge-tag {
@@ -204,6 +207,7 @@ body {
   font-weight: 900;
   color: #ffffff;
   text-shadow: 0 0 8px #10B981;
+  word-break: break-all;
 }
 
 .overlay-waitlist-header {
@@ -211,6 +215,7 @@ body {
   font-weight: 700;
   color: var(--text-sub);
   margin-top: 4px;
+  flex-shrink: 0;
 }
 
 .overlay-waitlist-list {
@@ -221,22 +226,31 @@ body {
   flex: 1;
 }
 
+.overlay-waitlist-list::-webkit-scrollbar {
+  width: 4px;
+}
+.overlay-waitlist-list::-webkit-scrollbar-thumb {
+  background: #10B981;
+  border-radius: 2px;
+}
+
 .overlay-wait-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   padding: 6px 10px;
   border-radius: var(--radius-md);
   font-size: 0.85rem;
   color: #ffffff;
+  flex-shrink: 0;
 }
 
 .overlay-wait-row .num {
   font-family: 'Orbitron', sans-serif;
   font-weight: 900;
-  color: var(--apex-red);
+  color: #10B981;
   min-width: 22px;
 }
 
