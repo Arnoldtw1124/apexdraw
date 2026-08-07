@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Overlay Preview</title>
+<link rel="stylesheet" href="css/style.css?v=1.0.4">
+<style>
+/* Simulate the transparent background with a game-like dark bg for preview */
+body { background: #0a0c14 !important; }
+</style>
+</head>
+<body>
+<canvas id="confettiCanvas"></canvas>
+<div class="app-container">
+  <header class="app-header"></header>
+  <main class="main-content">
+    <!-- Queue panel at top -->
+    <aside class="overlay-queue-panel">
+      <div class="overlay-queue-header-bar">
+        <span class="overlay-queue-title">排隊名單</span>
+        <button class="gear-toggle-btn">⚙️ 控場</button>
+      </div>
+      <div class="overlay-active-card">
+        <div class="active-badge-tag">當前玩家</div>
+        <div class="overlay-active-name">@Arnold</div>
+      </div>
+      <div class="overlay-waitlist-header">候選序列</div>
+      <div class="overlay-waitlist-list">
+        <div class="overlay-wait-row">
+          <span class="num">#1</span>
+          <span class="name">@StreamFan99</span>
+        </div>
+        <div class="overlay-wait-row">
+          <span class="num">#2</span>
+          <span class="name">@ProGamer</span>
+        </div>
+        <div class="overlay-wait-row">
+          <span class="num">#3</span>
+          <span class="name">@TwitchVIP</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Wheels section: hero + weapon stacked vertically -->
+    <section class="wheels-section">
+      <div class="wheels-container">
+        <div class="hero-reel-card">
+          <div class="wheel-title">英雄</div>
+          <div class="hero-reel-wrapper">
+            <canvas id="heroReelCanvas"></canvas>
+          </div>
+        </div>
+        <div class="hero-reel-card" style="border-color: rgba(74,242,255,0.6);">
+          <div class="wheel-title" style="color: var(--accent-gold);">槍械</div>
+          <div class="hero-reel-wrapper">
+            <canvas id="weaponReelCanvas"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result banner -->
+      <div id="resultBanner" class="result-banner active">
+        <div class="result-title">隨機組合結果</div>
+        <div id="resultCombination" class="result-combination">【幻象】＋【R-301】</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="js/apex_data.js?v=1.0.4"></script>
+<script src="js/audio.js?v=1.0.4"></script>
+<script src="js/wheel.js?v=1.0.4"></script>
+<script src="js/hero_reel.js?v=1.0.4"></script>
+<script src="js/weapon_reel.js?v=1.0.4"></script>
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  const hc = document.getElementById('heroReelCanvas');
+  const wc = document.getElementById('weaponReelCanvas');
+  if (hc && typeof HeroReel !== 'undefined') {
+    new HeroReel(hc, { items: [...APEX_DATA.legends], duration: 3000 });
+  }
+  if (wc && typeof WeaponReel !== 'undefined') {
+    new WeaponReel(wc, { items: [...APEX_DATA.weapons], duration: 3000 });
+  }
+});
+</script>
+</body>
+</html>

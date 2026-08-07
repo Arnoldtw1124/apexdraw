@@ -38,11 +38,12 @@ body {
 }
 
 /* ==========================================================================
-   DEFAULT LAYOUT: Pure Stream Viewer Overlay (3 Components Only!)
-   1. Hero Reel (Top Left)
-   2. Gun Reel (Bottom Left)
-   3. Queue Waitlist (Right Side)
-   High Contrast & Large Bold Typography for OBS Corner Scaling Readability!
+   DEFAULT LAYOUT: Vertical Sidebar Overlay
+   All components stacked top-to-bottom in one column:
+   1. Queue Panel (top)
+   2. Hero Result Card
+   3. Weapon Result Card
+   4. Result Banner (after spin)
    ========================================================================== */
 
 .app-container {
@@ -65,47 +66,50 @@ body {
   display: none;
 }
 
-/* Show Pure Stream Queue Panel BY DEFAULT */
-.overlay-queue-panel {
-  display: flex !important;
-  width: 230px;
-  min-width: 200px;
-  background: rgba(10, 12, 18, 0.96);
-  border: 2px solid rgba(255, 70, 85, 0.7);
-  border-radius: var(--radius-lg);
-  padding: 10px 12px;
-  gap: 8px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.9);
-  height: 100%;
-  flex-direction: column;
-}
-
+/* VERTICAL COLUMN: main content stacks top-to-bottom */
 .main-content {
   display: flex;
+  flex-direction: column;
   flex: 1;
-  gap: 10px;
+  gap: 6px;
   padding: 6px;
-  max-width: 1600px;
-  margin: 0 auto;
   width: 100%;
   height: 100vh;
   overflow: hidden;
   background: transparent;
 }
 
+/* Queue panel: horizontal compact bar at top */
+.overlay-queue-panel {
+  display: flex !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: auto !important;
+  max-height: 200px;
+  background: rgba(10, 12, 18, 0.96);
+  border: 2px solid rgba(255, 212, 74, 0.6);
+  border-radius: var(--radius-lg);
+  padding: 8px 12px;
+  gap: 7px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.9);
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+/* Wheels section: takes remaining space, stacks vertically */
 .wheels-section {
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  height: 100%;
+  align-items: stretch;
+  gap: 6px;
+  height: auto;
   overflow-y: auto;
-  justify-content: flex-start;
+  min-height: 0;
 }
 
 .wheels-section::-webkit-scrollbar {
-  width: 4px;
+  width: 3px;
 }
 .wheels-section::-webkit-scrollbar-thumb {
   background: var(--apex-red);
@@ -115,29 +119,32 @@ body {
 .wheels-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 8px;
+  align-items: stretch;
+  gap: 6px;
   width: 100%;
 }
 
+/* Each reel card - full width vertical block */
 .hero-reel-card {
   width: 100%;
   background: rgba(15, 17, 24, 0.94);
   border: 2px solid rgba(255, 70, 85, 0.6);
   border-radius: var(--radius-lg);
-  padding: 6px 10px;
+  padding: 6px 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(10px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+  flex-shrink: 0;
 }
 
+/* Reel canvas wrapper - auto height based on content */
 .hero-reel-wrapper {
   position: relative;
   width: 100%;
-  height: 160px;
+  height: 150px;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -146,7 +153,7 @@ body {
 
 .wheel-title {
   font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 900;
   color: var(--accent-cyan);
   margin-bottom: 2px;
@@ -154,6 +161,7 @@ body {
   align-items: center;
   gap: 6px;
   text-shadow: 0 0 10px rgba(74, 242, 255, 0.6);
+  align-self: flex-start;
 }
 
 /* ==========================================================================
