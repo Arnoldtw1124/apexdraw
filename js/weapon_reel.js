@@ -2,8 +2,7 @@
  * Horizontal Weapon Selection Reel Engine
  * Matches the exact AAA horizontal carousel feel of the Hero Selector.
  * 
- * Features 3-Card Wide Layout (cardWidth = 260px) for maximum weapon image clarity,
- * 100% Cross-Browser Safe Rounded Rect Drawing & Error-Proof Canvas Rendering.
+ * Features Aspect-Correct CONTAIN Fitting so full gun models (barrel to stock) are 100% visible!
  */
 
 if (typeof window.safeRoundRect !== 'function') {
@@ -42,8 +41,8 @@ class WeaponReel {
     this.onSpinEnd = options.onSpinEnd || null;
     this.onTick = options.onTick || null;
 
-    // 3-Card Wide Layout (260px wide cards so guns look huge and wide!)
-    this.cardWidth = 260;
+    // 3-Card Wide Layout for full weapon visibility
+    this.cardWidth = 280;
     this.cardHeight = 210;
     this.cardGap = 24;
     this.totalCardStep = this.cardWidth + this.cardGap;
@@ -278,7 +277,7 @@ class WeaponReel {
 
     if (isWinner) {
       ctx.translate(x + w / 2, y + h / 2);
-      ctx.scale(1.08, 1.08);
+      ctx.scale(1.06, 1.06);
       ctx.translate(-(x + w / 2), -(y + h / 2));
     }
 
@@ -305,34 +304,34 @@ class WeaponReel {
 
     // Image / Badge container
     const imgObj = item.id ? this.imageCache[item.id] : null;
-    const destX = x + 6 * dpr;
-    const avatarY = y + 6 * dpr;
-    const targetW = w - 12 * dpr;
+    const destX = x + 8 * dpr;
+    const avatarY = y + 8 * dpr;
+    const targetW = w - 16 * dpr;
     const targetH = h * 0.77;
 
     if (imgObj && imgObj instanceof Image && imgObj.complete && imgObj.naturalWidth > 0) {
-      // Object-fit Cover Cropping for crisp gun rendering
+      // Object-Fit Contain Mode: Fits 100% of weapon from barrel to stock without cropping
       const imgW = imgObj.naturalWidth || imgObj.width;
       const imgH = imgObj.naturalHeight || imgObj.height;
 
-      const scale = Math.max(targetW / imgW, targetH / imgH);
-      const sw = targetW / scale;
-      const sh = targetH / scale;
-      const sx = (imgW - sw) / 2;
-      const sy = (imgH - sh) / 2;
+      const scale = Math.min(targetW / imgW, targetH / imgH);
+      const renderW = imgW * scale;
+      const renderH = imgH * scale;
+      const renderX = destX + (targetW - renderW) / 2;
+      const renderY = avatarY + (targetH - renderH) / 2;
 
       ctx.save();
       ctx.beginPath();
       window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
       ctx.clip();
 
-      ctx.drawImage(imgObj, sx, sy, sw, sh, destX, avatarY, targetW, targetH);
+      ctx.drawImage(imgObj, 0, 0, imgW, imgH, renderX, renderY, renderW, renderH);
 
-      const shadowGrad = ctx.createLinearGradient(0, avatarY + targetH - 35 * dpr, 0, avatarY + targetH);
+      const shadowGrad = ctx.createLinearGradient(0, avatarY + targetH - 25 * dpr, 0, avatarY + targetH);
       shadowGrad.addColorStop(0, 'rgba(0,0,0,0)');
-      shadowGrad.addColorStop(1, 'rgba(20, 23, 32, 0.9)');
+      shadowGrad.addColorStop(1, 'rgba(20, 23, 32, 0.85)');
       ctx.fillStyle = shadowGrad;
-      ctx.fillRect(destX, avatarY + targetH - 35 * dpr, targetW, 35 * dpr);
+      ctx.fillRect(destX, avatarY + targetH - 25 * dpr, targetW, 25 * dpr);
 
       ctx.restore();
     } else {
