@@ -160,7 +160,6 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  text-shadow: 0 0 10px rgba(74, 242, 255, 0.6);
   align-self: flex-start;
 }
 
@@ -183,7 +182,6 @@ body {
   font-weight: 900;
   color: var(--accent-gold);
   letter-spacing: 1px;
-  text-shadow: 0 0 12px rgba(255, 212, 74, 0.8);
 }
 
 .gear-toggle-btn {
@@ -205,8 +203,8 @@ body {
 
 /* Current Player Box - BIG and visible */
 .overlay-active-card {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(16, 185, 129, 0.1) 100%);
-  border: 2.5px solid #10B981;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1.5px solid rgba(16, 185, 129, 0.5);
   border-radius: var(--radius-md);
   padding: 10px 12px;
   display: flex;
@@ -215,7 +213,6 @@ body {
   gap: 4px;
   text-align: center;
   flex-shrink: 0;
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4), inset 0 0 20px rgba(16, 185, 129, 0.05);
 }
 
 .active-badge-tag {
@@ -234,7 +231,7 @@ body {
   font-size: 1.6rem;
   font-weight: 900;
   color: #ffffff;
-  text-shadow: 0 0 15px #10B981, 0 0 30px rgba(16,185,129,0.5), 0 2px 6px rgba(0,0,0,0.95);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.95);
   word-break: break-all;
   line-height: 1.1;
   letter-spacing: 0.5px;
@@ -287,7 +284,6 @@ body {
   font-size: 1rem;
   color: #10B981;
   min-width: 22px;
-  text-shadow: 0 0 8px #10B981;
 }
 
 .overlay-wait-row .name {
