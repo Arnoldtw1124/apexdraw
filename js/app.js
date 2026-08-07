@@ -2,6 +2,7 @@
  * Main Application Controller for Apex Legends OBS Plugin
  * Manages Dual Horizontal Carousels (Hero Reel & Weapon Reel),
  * Audio, Hotkeys, Filters, Twitch Integration & OBS Server Polling Cross-Process Sync.
+ * Anti-Echo: Mutes Dock audio by default so only OBS Overlay Source emits sound.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -25,7 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
     lastSelectedWeapon: null,
     twitchChannel: urlChannel ? urlChannel.trim() : '',
     twitchReward: urlReward ? urlReward.trim() : '抽隨機英雄和槍枝',
-    twitchStrictPoints: true
+    twitchStrictPoints: true,
+    muteDockAudio: true
   };
 
   // Load state from localStorage
@@ -33,6 +35,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (urlChannel) state.twitchChannel = urlChannel.trim();
   if (urlReward) state.twitchReward = urlReward.trim();
+
+  // --- Audio Anti-Echo Management ---
+  function applyAudioMuteState() {
+    if (!window.soundEngine) return;
+
+    if (isOverlayMode) {
+      // OBS Browser Source Overlay ALWAYS plays sound for stream viewers
+      window.soundEngine.setMuted(false);
+    } else {
+      // Control Panel Dock Muted by default to prevent double sound echo
+      window.soundEngine.setMuted(state.muteDockAudio);
+    }
+  }
+
+  applyAudioMuteState();
 
   // --- Real-Time Cross-Window & OBS Process Sync (BroadcastChannel + LocalServer Polling) ---
   const syncChannel = new BroadcastChannel('apex_roulette_sync');
@@ -245,6 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const savedTwitchCh = localStorage.getItem('apex_roulette_twitch_channel');
       const savedTwitchRw = localStorage.getItem('apex_roulette_twitch_reward');
       const savedTwitchSt = localStorage.getItem('apex_roulette_twitch_strict');
+      const savedMuteDock = localStorage.getItem('apex_roulette_mute_dock');
 
       if (savedLegendIds) {
         const ids = JSON.parse(savedLegendIds);
@@ -272,11 +290,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (savedTwitchCh) state.twitchChannel = savedTwitchCh;
       if (savedTwitchRw) state.twitchReward = savedTwitchRw;
       if (savedTwitchSt !== null) state.twitchStrictPoints = savedTwitchSt === 'true';
+      if (savedMuteDock !== null) state.muteDockAudio = savedMuteDock === 'true';
 
     } catch (e) {
       state.activeLegends = [...APEX_DATA.legends];
       state.activeWeapons = [...APEX_DATA.weapons];
       state.soundVolume = 0.65;
+      state.muteDockAudio = true;
     }
   }
 
@@ -288,6 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('apex_roulette_twitch_channel', state.twitchChannel);
       localStorage.setItem('apex_roulette_twitch_reward', state.twitchReward);
       localStorage.setItem('apex_roulette_twitch_strict', state.twitchStrictPoints.toString());
+      localStorage.setItem('apex_roulette_mute_dock', state.muteDockAudio.toString());
     } catch (e) {}
   }
 
@@ -666,12 +687,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const twitchChannelInput = document.getElementById('twitchChannelInput');
   const twitchRewardInput = document.getElementById('twitchRewardInput');
   const strictPointsOnlyCheck = document.getElementById('strictPointsOnlyCheck');
+  const muteDockAudioCheck = document.getElementById('muteDockAudioCheck');
   const connectTwitchBtn = document.getElementById('connectTwitchBtn');
   const testTwitchTriggerBtn = document.getElementById('testTwitchTriggerBtn');
 
   if (twitchChannelInput) twitchChannelInput.value = state.twitchChannel;
   if (twitchRewardInput) twitchRewardInput.value = state.twitchReward;
   if (strictPointsOnlyCheck) strictPointsOnlyCheck.checked = state.twitchStrictPoints;
+  if (muteDockAudioCheck) muteDockAudioCheck.checked = state.muteDockAudio;
+
+  if (muteDockAudioCheck) {
+    muteDockAudioCheck.addEventListener('change', (e) => {
+      state.muteDockAudio = e.target.checked;
+      applyAudioMuteState();
+      saveState();
+    });
+  }
 
   if (testTwitchTriggerBtn) {
     testTwitchTriggerBtn.addEventListener('click', () => {
