@@ -1,8 +1,9 @@
 /**
  * Horizontal Weapon Selection Reel Engine
  * Matches the exact AAA horizontal carousel feel of the Hero Selector.
- * Renders weapon cards with category color coding, cover-fit images or stylish badges,
- * 60 FPS ease-out scroll physics, tick audio events, and center reticle targeting.
+ * 
+ * Configured specifically for weapon webp image files in image/ folder:
+ * e.g., image/R-301_Carbine.webp, image/30-30_Repeater.webp, etc.
  */
 
 class WeaponReel {
@@ -39,8 +40,8 @@ class WeaponReel {
   }
 
   /**
-   * Preload weapon images with multi-format fallback (AVIF -> WEBP -> PNG -> JPG)
-   * Pattern: image/apex-grid-tile-weapons-XXX or image/XXX
+   * Preload weapon images matching exact filenames in image/ folder
+   * Handles WEBP, AVIF, PNG, JPG formats seamlessly!
    */
   preloadImages(forceReload = false) {
     if (!this.items) return;
@@ -60,16 +61,18 @@ class WeaponReel {
       }
 
       const fileKey = item.fileKey || item.id;
+      const altKey = item.altFileKey || fileKey;
       const slug = item.id.replace(/_/g, '-');
-      const formats = ['.avif', '.webp', '.png', '.jpg'];
+      const formats = ['.webp', '.avif', '.png', '.jpg'];
       const folders = ['image', 'images'];
 
       const fileNames = [
+        `${fileKey}`,
+        `${altKey}`,
         `apex-grid-tile-weapons-${fileKey}`,
         `apex-grid-tile-weapons-${slug}`,
-        `apex-grid-tile-weapons-${item.id}`,
         `weapon-${fileKey}`,
-        `${fileKey}`,
+        `${slug}`,
         `${item.id}`
       ];
 
@@ -289,10 +292,10 @@ class WeaponReel {
     const destX = x + 6 * dpr;
     const avatarY = y + 6 * dpr;
     const targetW = w - 12 * dpr;
-    const targetH = h * 0.72;
+    const targetH = h * 0.77;
 
     if (imgObj && imgObj instanceof Image && imgObj.complete && imgObj.naturalWidth > 0) {
-      // Object-fit Cover Cropping
+      // Object-fit Cover Cropping for crisp gun rendering
       const imgW = imgObj.naturalWidth || imgObj.width;
       const imgH = imgObj.naturalHeight || imgObj.height;
 
@@ -325,7 +328,6 @@ class WeaponReel {
       ctx.globalAlpha = 0.15;
       ctx.fill();
 
-      // Weapon Icon / Symbol
       ctx.globalAlpha = 1.0;
       ctx.fillStyle = themeColor;
       ctx.font = `bold ${32 * dpr}px "Orbitron", sans-serif`;
@@ -342,20 +344,6 @@ class WeaponReel {
       ctx.restore();
     }
 
-    // Category Tag Bar
-    const tagY = y + targetH + 8 * dpr;
-    ctx.fillStyle = themeColor;
-    ctx.beginPath();
-    ctx.roundRect(x + 10 * dpr, tagY, w - 20 * dpr, 16 * dpr, 4 * dpr);
-    ctx.fill();
-
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = `bold ${9 * dpr}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const catLabel = catData.name ? catData.name.split(' ')[0] : 'WEAPON';
-    ctx.fillText(catLabel, x + w / 2, tagY + 8 * dpr);
-
     // Weapon Name Footer
     ctx.fillStyle = isWinner ? '#FFD44A' : '#FFFFFF';
     ctx.font = `bold ${14 * dpr}px "Noto Sans TC", sans-serif`;
@@ -363,7 +351,7 @@ class WeaponReel {
     ctx.textBaseline = 'middle';
     ctx.shadowColor = 'rgba(0,0,0,0.9)';
     ctx.shadowBlur = 4 * dpr;
-    ctx.fillText(item.name || '', x + w / 2, y + h - 14 * dpr);
+    ctx.fillText(item.name || '', x + w / 2, y + h - 18 * dpr);
 
     ctx.restore();
   }
