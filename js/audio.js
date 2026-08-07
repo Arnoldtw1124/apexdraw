@@ -1,12 +1,13 @@
 /**
  * Web Audio API Sound Synthesizer
  * No external audio files needed - zero loading failures!
+ * Default volume set to 65% (0.65).
  */
 class SoundEngine {
   constructor() {
     this.audioCtx = null;
     this.muted = false;
-    this.volume = 0.5;
+    this.volume = 0.65;
   }
 
   init() {
