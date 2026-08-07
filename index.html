@@ -113,8 +113,8 @@
 
           <div class="setting-group">
             <label for="twitchRewardInput">忠誠點數兌換項目名稱</label>
-            <input type="text" id="twitchRewardInput" value="抽輪盤" placeholder="例如: 抽輪盤" style="padding: 8px 12px; background: var(--apex-card); border: 1px solid var(--apex-border); color: #fff; border-radius: var(--radius-md);">
-            <span style="font-size: 0.8rem; color: var(--text-sub);">觀眾於 Twitch 兌換此名稱點數時自動觸發抽籤</span>
+            <input type="text" id="twitchRewardInput" value="醒目標示我的訊息" placeholder="例如: 醒目標示我的訊息" style="padding: 8px 12px; background: var(--apex-card); border: 1px solid var(--apex-border); color: #fff; border-radius: var(--radius-md);">
+            <span style="font-size: 0.8rem; color: var(--text-sub);">觀眾於 Twitch 兌換此名稱點數或內建醒目標示時自動觸發抽籤</span>
           </div>
 
           <div class="setting-group" style="margin-top: 6px;">
@@ -124,12 +124,23 @@
             </label>
           </div>
 
-          <div style="margin-top: 14px;">
+          <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
             <button id="connectTwitchBtn" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px;">
               儲存設定並連結 Twitch
             </button>
+            <button id="testTwitchTriggerBtn" class="btn" style="width: 100%; justify-content: center; padding: 10px; background: rgba(145, 70, 255, 0.2); border-color: #9146FF; color: #E0C3FF;">
+              測試連動抽籤 (Test Trigger)
+            </button>
             <div id="twitchSaveToast" class="save-toast-banner" style="display: none;">
               ✓ 設定已成功儲存並套用！
+            </div>
+          </div>
+
+          <!-- Twitch Debug Log Window -->
+          <div style="margin-top: 10px;">
+            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-sub);">Twitch 即時訊號監控 Log</label>
+            <div id="twitchLogContainer" class="twitch-log-box">
+              <div class="log-item">系統初始化完畢，等待連結 Twitch 頻道...</div>
             </div>
           </div>
         </div>

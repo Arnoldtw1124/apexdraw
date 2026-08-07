@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     lastSelectedLegend: null,
     lastSelectedWeapon: null,
     twitchChannel: '',
-    twitchReward: '抽輪盤',
+    twitchReward: '醒目標示我的訊息',
     twitchEnableCmds: true
   };
 
@@ -75,7 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
       onSpinLegend: () => spinLegendOnly(),
       onSpinWeapon: () => spinWeaponOnly(),
       onStatusChange: (statusState, message) => updateTwitchBadge(statusState, message),
-      onTwitchNotice: (msg) => showTwitchNotice(msg)
+      onTwitchNotice: (msg) => showTwitchNotice(msg),
+      onDebugLog: (logText) => appendTwitchLog(logText)
     });
 
     if (state.twitchChannel) {
@@ -112,6 +113,17 @@ document.addEventListener('DOMContentLoaded', () => {
         toast.style.display = 'none';
       }, 3500);
     }
+  }
+
+  function appendTwitchLog(logText) {
+    const container = document.getElementById('twitchLogContainer');
+    if (!container) return;
+
+    const div = document.createElement('div');
+    div.className = 'log-item';
+    div.innerText = logText;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
   }
 
   // --- State Persistence & Filters ---
@@ -470,15 +482,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const twitchRewardInput = document.getElementById('twitchRewardInput');
   const enableChatCmdsCheck = document.getElementById('enableChatCmdsCheck');
   const connectTwitchBtn = document.getElementById('connectTwitchBtn');
+  const testTwitchTriggerBtn = document.getElementById('testTwitchTriggerBtn');
 
   if (twitchChannelInput) twitchChannelInput.value = state.twitchChannel;
   if (twitchRewardInput) twitchRewardInput.value = state.twitchReward;
+
+  if (testTwitchTriggerBtn) {
+    testTwitchTriggerBtn.addEventListener('click', () => {
+      showTwitchNotice(`【測試】觀眾 @TestViewer 兌換了忠誠點數【${state.twitchReward || '醒目標示我的訊息'}】！`);
+      spinBoth();
+    });
+  }
 
   if (connectTwitchBtn) {
     connectTwitchBtn.addEventListener('click', () => {
       const channel = twitchChannelInput.value.trim();
       state.twitchChannel = channel;
-      state.twitchReward = twitchRewardInput.value.trim() || '抽輪盤';
+      state.twitchReward = twitchRewardInput.value.trim() || '醒目標示我的訊息';
       state.twitchEnableCmds = enableChatCmdsCheck ? enableChatCmdsCheck.checked : true;
       saveState();
 
@@ -502,7 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (twitchRewardInput) {
     twitchRewardInput.addEventListener('change', (e) => {
-      state.twitchReward = e.target.value.trim() || '抽輪盤';
+      state.twitchReward = e.target.value.trim() || '醒目標示我的訊息';
       if (twitchIntegration) twitchIntegration.rewardName = state.twitchReward;
       saveState();
     });

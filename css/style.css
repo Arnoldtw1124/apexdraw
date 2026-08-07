@@ -290,7 +290,7 @@ body.overlay-mode .wheels-container {
   text-shadow: 0 0 12px rgba(255, 255, 255, 0.8), 0 0 20px var(--apex-red);
 }
 
-/* Twitch Integration Badge, Toast & Notice Banner */
+/* Twitch Integration Badge, Toast, Debug Log & Notice Banner */
 .twitch-status-badge {
   padding: 10px 14px;
   border-radius: var(--radius-md);
@@ -336,6 +336,27 @@ body.overlay-mode .wheels-container {
   font-weight: 700;
   text-align: center;
   animation: result-slide-in 0.3s ease;
+}
+
+.twitch-log-box {
+  margin-top: 6px;
+  background: rgba(10, 12, 18, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  font-family: Consolas, monospace;
+  font-size: 0.78rem;
+  color: #a7f3d0;
+  max-height: 140px;
+  overflow-y: auto;
+  line-height: 1.45;
+}
+
+.twitch-log-box .log-item {
+  margin-bottom: 4px;
+  word-break: break-all;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  padding-bottom: 2px;
 }
 
 .twitch-notice-banner {
