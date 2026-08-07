@@ -3,7 +3,7 @@
  * Manages Dual Horizontal Carousels (Hero Reel & Weapon Reel),
  * Audio, Hotkeys, Filters, Twitch Integration & OBS Server Polling Cross-Process Sync.
  * DEFAULT VIEW: Pure 3-Component Stream Overlay (Hero + Weapon + Queue Waitlist, ZERO buttons/headers).
- * STREAMER DOCK VIEW: Activated via `?mode=dock` for streamer controls and settings tabs.
+ * STREAMER DOCK VIEW: Activated via `?mode=dock` or clicking `⚙️ 控場面板` for streamer controls.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -588,6 +588,17 @@ document.addEventListener('DOMContentLoaded', () => {
       if (twitchIntegration) {
         twitchIntegration.clearQueue();
       }
+    });
+  }
+
+  // Gear Button inside Queue Card for 1-Click Dock Mode activation
+  const dockGearToggleBtn = document.getElementById('dockGearToggleBtn');
+  if (dockGearToggleBtn) {
+    dockGearToggleBtn.addEventListener('click', () => {
+      document.body.classList.toggle('dock-mode');
+      applyAudioMuteState();
+      if (heroReel) heroReel.resizeCanvas();
+      if (weaponReel) weaponReel.resizeCanvas();
     });
   }
 

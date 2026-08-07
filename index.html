@@ -11,7 +11,7 @@
   <canvas id="confettiCanvas"></canvas>
 
   <div class="app-container">
-    <!-- Top Application Header (Hidden in Overlay Mode) -->
+    <!-- Top Application Header (Shown in Dock Mode) -->
     <header class="app-header">
       <div class="brand-logo">
         <div class="apex-icon"></div>
@@ -19,7 +19,7 @@
       </div>
       <div class="header-controls">
         <button id="toggleViewModeBtn" class="btn" style="background: rgba(16, 185, 129, 0.2); border-color: #10B981; color: #6EE7B7;">
-          🎥 切換直播觀眾畫面 (Overlay)
+          🎥 切換直播觀眾畫面
         </button>
         <button id="obsGuideBtn" class="btn">OBS 整合教學</button>
       </div>
@@ -54,7 +54,7 @@
           </div>
         </div>
 
-        <!-- Spin Action Bar (Hidden in Stream Overlay View) -->
+        <!-- Spin Action Bar (Shown in Dock Mode) -->
         <div class="spin-action-bar">
           <button id="spinBothBtn" class="btn btn-primary btn-large-spin">
             一鍵全抽
@@ -65,7 +65,7 @@
           </div>
         </div>
 
-        <!-- Result Combination Banner (Hidden in Stream Overlay View) -->
+        <!-- Result Combination Banner (Shown in Dock Mode) -->
         <div id="resultBanner" class="result-banner">
           <div class="result-title">隨機組合結果</div>
           <div id="resultCombination" class="result-combination">請點擊上方按鈕或由觀眾扣點抽籤！</div>
@@ -73,9 +73,14 @@
 
       </section>
 
-      <!-- Right Panel 1: Stream Broadcast Queue Panel (Shown ONLY in Overlay Mode on Stream) -->
+      <!-- Right Panel 1: Stream Broadcast Queue Panel (Shown in Viewer Mode) -->
       <aside class="overlay-queue-panel">
-        <div class="overlay-queue-title">排隊名單</div>
+        <div class="overlay-queue-header-bar">
+          <span class="overlay-queue-title">排隊名單</span>
+          <button id="dockGearToggleBtn" class="gear-toggle-btn" title="點擊切換實況主控制面板">
+            ⚙️ 控場面板
+          </button>
+        </div>
         <div class="overlay-active-card">
           <div class="active-badge-tag">當前玩家</div>
           <div id="overlayActiveName" class="overlay-active-name">無 (等待中)</div>
@@ -86,7 +91,7 @@
         </div>
       </aside>
 
-      <!-- Right Panel 2: Streamer Control & Settings Dock (Shown in Control Dock Mode) -->
+      <!-- Right Panel 2: Streamer Control & Settings Dock (Shown in Dock Mode) -->
       <aside class="sidebar-panel">
         <div class="tab-nav">
           <button class="tab-btn active" data-tab="tabQueue">控場</button>
@@ -237,16 +242,16 @@
             點擊右側側邊欄 <code>Twitch 連動</code>，填入您的頻道名稱（如 <code>arnold1124</code>）並點擊連線！觀眾兌換忠誠點數即會自動觸發排隊抽籤！
           </li>
           <li>
-            <strong>設定為 OBS 實況圖層（畫面呈現 - 僅保留英雄+槍械+排隊清單）：</strong>
+            <strong>設定為 OBS 實況圖層（畫面呈現）：</strong>
             <br>
             在 OBS「來源」視窗點擊 <code>+</code> &rarr; 選擇 <code>瀏覽器</code>。
-            網址填寫 <code>http://localhost:8000/?mode=overlay</code>（即可啟用無按鈕純淨圖層）。
+            網址填寫 <code>http://localhost:8000/</code>。
           </li>
           <li>
             <strong>設定為 OBS 獨立控制面板（實況主控場）：</strong>
             <br>
             在 OBS 頂部選單點擊 <code>停駐視窗 (D)</code> &rarr; <code>自訂瀏覽器停駐點...</code>。
-            停駐點名稱填寫「Apex輪盤」，URL 填寫 <code>http://localhost:8000/</code> 即可！
+            網址填寫 <code>http://localhost:8000/?mode=dock</code>，或直接點擊右上角「⚙️ 控場面板」按鈕！
           </li>
         </ol>
       </div>
