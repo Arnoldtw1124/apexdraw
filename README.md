@@ -1,36 +1,45 @@
-# OBS Visual Roulette Plugin - Apex Legends 隨機英雄與槍械組合輪盤 🎯
+# Apex 轉盤小幫手 - OBS 實況主專用隨機英雄與槍械輪盤 🎯
 
-一款專為 **OBS Studio** 實況主設計的高品質視覺化輪盤與英雄橫向選單插件，適用於《Apex 英雄 (Apex Legends)》。提供流暢 60 FPS 橫向卡片滾動、槍械輪盤動畫、齒輪轉動擬真音效、獲勝彩帶紙屑特效、自訂英雄與槍械庫，以及 OBS 圖層透明背景模式。
+一款專為 **OBS Studio** 實況主設計的高品質視覺化輪盤與英雄選單插件，適用於《Apex 英雄 (Apex Legends)》。提供流暢 60 FPS 橫向卡片滾動、槍械選單、Twitch 忠誠點數零設定連動、實況主排隊控場卡片、觀眾即時排隊名單、OBS 完全透明背景圖層模式與跨進程毫秒級同步。
 
 ---
 
 ## 🌟 核心特色 (Key Features)
 
-- ⚡ **橫向動態英雄選單 (Hero Reel)**：英雄以角色選單樣式自左向右滾動，最終精準停留在中央瞄準框。
-- 🖼️ **支援全格式圖片 (AVIF / WEBP / PNG / JPG)**：您可以直接在 `images/` 資料夾放入 `.avif`、`.webp`、`.png` 或 `.jpg` 英雄圖片（例如 `wraith.avif` 或 `wraith.png`），系統會自動偵測並呈現！
-- ⚔️ **槍械輪盤 (Weapon Roulette)**：同時連動抽籤，自動生成隨機挑戰組合 (例：`惡靈 + R-99 衝鋒槍`)。
-- 🎨 **自訂英雄與槍械庫**：實況主可在右側選單隨時勾選或取消特定英雄/槍械，儲存狀態將自動保留於瀏覽器。
-- 🔊 **Web Audio API 擬真音效**：無需載入外部 MP3 檔案，內建機械齒輪轉動音效與獲勝音效。
-- 🖼️ **OBS 完全透明背景支援**：帶有 `?mode=overlay` 參數時自動轉為透明畫質，完美疊加於遊戲畫面之上。
-- ⌨️ **快捷鍵支援**：按下鍵盤 `空白鍵 (Space)` 或 `S` 鍵即可直接發動輪盤旋轉！
+- ⚡ **雙橫向動態選單 (Hero & Weapon Reel)**：英雄與槍械橫向卡片滾動，精準停留在中央紅/藍瞄準框。
+- 🔮 **Twitch 忠誠點數零設定連動 (Zero-Setup)**：不需要申請任何 API 金鑰或 OAuth Token，觀眾兌換點數即自動觸發排隊抽籤。
+- 🛡️ **防刷扣點驗證與排隊佇列 (Anti-Spam & Queue)**：嚴格阻擋聊天室免費打字洗屏，多位觀眾同時兌換時自動進隊列，實況主打完一局點擊按鈕接續下一位！
+- 📡 **OBS 本地即時廣播伺服器 (Local Sync Server)**：OBS 控制面板 (Dock) 與直播畫面 (Overlay) 100% 毫秒級雙向同步。
+- 🔊 **防止重音 (Anti-Echo Audio)**：控制面板預設自動靜音，僅由 OBS 直播圖層發出清脆音效。
+- 🎨 **角落極簡 HUD 視角**：直播圖層自動顯示觀眾排隊名單 (#1, #2, #3, #4)，隱藏設定選單，不遮擋遊戲畫面。
 
 ---
 
-## 🚀 OBS Studio 整合指南 (OBS Integration Setup)
+## 🚀 1 秒啟動與安裝 (1-Click Start)
 
-### 模式 1：新增為實況圖層 (Browser Source Overlay)
+解壓縮 Zip 套件後，只要在資料夾中雙擊執行 **`install.bat`**：
+1. 系統會自動在背景啟動即時同步伺服器 `server.py` (Port 8000)。
+2. 自動在桌面建立 **[Apex OBS 輪盤控制台]** 捷徑並開啟瀏覽器。
 
-1. 開啟 OBS Studio，在 **「來源 (Sources)」** 視窗中點擊 `+` 按鈕。
-2. 選擇 **「瀏覽器 (Browser)」**，名稱可輸入 `Apex輪盤圖層`。
-3. 在設定視窗中：
-   - 勾選 **「本機檔案 (Local file)」**，並點擊瀏覽選擇本專案的 `index.html`。
-   - 在 URL 設定尾端加上 `?mode=overlay`（例如 `file:///D:/OBS插件/index.html?mode=overlay`）。
-   - 寬度 (Width) 設定為 `1280`，高度 (Height) 設定為 `720`。
-4. 點擊 **確定** 即可在實況畫面上顯示透明背景的動態卡片選單與輪盤！
+---
 
-### 模式 2：設定為 OBS 實況主控制面板 (Custom Browser Dock)
+## 🖥️ OBS Studio 整合指南
 
-1. 開啟 OBS Studio 上方選單：`檢視 (View)` &rarr; `動態分頁 (Docks)` &rarr; `自訂瀏覽器 Dock... (Custom Browser Docks...)`。
-2. 在 **Dock 名稱** 輸入 `Apex輪盤控制台`。
-3. 在 **URL** 填入 `index.html` 的絕對路徑（例：`file:///D:/OBS插件/index.html`）。
-4. 點擊 **套用 (Apply)** 即可！
+### 1. 設定為 OBS 直播畫面圖層 (Browser Overlay Source)
+- 在 OBS「來源」點擊 `+` &rarr; 選擇 `瀏覽器`。
+- 網址輸入：`http://localhost:8000/?mode=overlay`
+- 解析度設定：`800` x `600`。
+
+### 2. 設定為 OBS 實況主控制面板 (Custom Dock)
+- 點擊 OBS 頂部選單 `停駐視窗 (D)` &rarr; `自訂瀏覽器停駐點...`
+- 停駐點名稱：`Apex輪盤`
+- URL 輸入：`http://localhost:8000/`
+
+---
+
+## 🌐 雲端零安裝免伺服器部署方案 (Cloud Deployment Options)
+
+若您想直接分享連結給其他實況主朋友，完全免下載 Python：
+1. 將本專案上傳至 GitHub，開啟 **GitHub Pages**。
+2. 網址即為 `https://<your-username>.github.io/apexdraw/`。
+3. 其他實況主只需在 OBS 填寫此網址，即可直接使用（內建 HTML5 `BroadcastChannel` 本地廣播機制）！
