@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>Debug Test</title>
+<style>
+body { background: #111; color: #fff; font-family: monospace; padding: 20px; }
+#log { background: #000; padding: 10px; border-radius: 8px; height: 200px; overflow-y: auto; font-size: 13px; }
+.ok { color: #4AFF85; }
+.err { color: #FF4655; }
+canvas { border: 2px solid #FF4655; display: block; margin: 10px 0; }
+button { background: #FF4655; color: #fff; border: none; padding: 10px 20px; font-size: 16px; cursor: pointer; border-radius: 6px; margin: 5px; }
+</style>
+</head>
+<body>
+<h2>Apex 轉盤 Debug 頁面</h2>
+<div id="log"></div>
+<div id="heroWrapper" style="width:800px;height:200px;background:#1a1a2e;border-radius:8px;overflow:hidden;">
+  <canvas id="heroReelCanvas"></canvas>
+</div>
+<div id="weaponWrapper" style="width:800px;height:200px;background:#1a1a2e;border-radius:8px;overflow:hidden;margin-top:10px;">
+  <canvas id="weaponReelCanvas"></canvas>
+</div>
+<button onclick="doSpin()">🎰 抽！</button>
+<button onclick="location.reload()">🔄 重載</button>
+
+<script>
+var logEl = document.getElementById('log');
+function log(msg, isErr) {
+  var d = document.createElement('div');
+  d.className = isErr ? 'err' : 'ok';
+  d.textContent = (isErr ? '✗ ' : '✓ ') + msg;
+  logEl.appendChild(d);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+window.onerror = function(msg, src, line, col, err) {
+  log('JS ERROR: ' + msg + ' [' + (src||'').split('/').pop() + ':' + line + ']', true);
+  return false;
+};
+
+log('Page loaded OK');
+</script>
+
+<script src="js/apex_data.js?v=2"></script>
+<script>
+try {
+  if (typeof APEX_DATA !== 'undefined' && APEX_DATA.legends) {
+    log('apex_data.js OK - ' + APEX_DATA.legends.length + ' legends, ' + APEX_DATA.weapons.length + ' weapons');
+  } else {
+    log('apex_data.js LOADED but APEX_DATA is undefined!', true);
+  }
+} catch(e) { log('apex_data.js EXCEPTION: ' + e.message, true); }
+</script>
+
+<script src="js/audio.js?v=2"></script>
+<script>
+try {
+  if (typeof window.soundEngine !== 'undefined') {
+    log('audio.js OK - soundEngine ready');
+  } else {
+    log('audio.js LOADED but window.soundEngine is undefined!', true);
+  }
+} catch(e) { log('audio.js EXCEPTION: ' + e.message, true); }
+</script>
+
+<script src="js/wheel.js?v=2"></script>
+<script>
+try {
+  if (typeof window.safeRoundRect === 'function') {
+    log('wheel.js OK - window.safeRoundRect defined');
+  } else {
+    log('wheel.js LOADED but window.safeRoundRect is missing!', true);
+  }
+} catch(e) { log('wheel.js EXCEPTION: ' + e.message, true); }
+</script>
+
+<script src="js/hero_reel.js?v=2"></script>
+<script>
+try {
+  if (typeof window.HeroReel === 'function') {
+    log('hero_reel.js OK - window.HeroReel defined');
+  } else {
+    log('hero_reel.js LOADED but window.HeroReel is undefined!', true);
+  }
+} catch(e) { log('hero_reel.js EXCEPTION: ' + e.message, true); }
+</script>
+
+<script src="js/weapon_reel.js?v=2"></script>
+<script>
+try {
+  if (typeof window.WeaponReel === 'function') {
+    log('weapon_reel.js OK - window.WeaponReel defined');
+  } else {
+    log('weapon_reel.js LOADED but window.WeaponReel is undefined!', true);
+  }
+} catch(e) { log('weapon_reel.js EXCEPTION: ' + e.message, true); }
+</script>
+
+<script>
+var heroReel = null, weaponReel = null;
+
+try {
+  var hc = document.getElementById('heroReelCanvas');
+  heroReel = new HeroReel(hc, {
+    items: [...APEX_DATA.legends],
+    duration: 3000,
+    onSpinEnd: function(item) { log('Hero spin ended: ' + (item ? item.name : 'null')); }
+  });
+  log('HeroReel instantiated OK');
+} catch(e) {
+  log('HeroReel instantiation FAILED: ' + e.message, true);
+}
+
+try {
+  var wc = document.getElementById('weaponReelCanvas');
+  weaponReel = new WeaponReel(wc, {
+    items: [...APEX_DATA.weapons],
+    duration: 3000,
+    onSpinEnd: function(item) { log('Weapon spin ended: ' + (item ? item.name : 'null')); }
+  });
+  log('WeaponReel instantiated OK');
+} catch(e) {
+  log('WeaponReel instantiation FAILED: ' + e.message, true);
+}
+
+function doSpin() {
+  log('Spin triggered!');
+  try {
+    if (heroReel) heroReel.isSpinning = false, heroReel.spin();
+    if (weaponReel) weaponReel.isSpinning = false, weaponReel.spin();
+  } catch(e) {
+    log('Spin FAILED: ' + e.message, true);
+  }
+}
+
+// Check canvas after 500ms
+setTimeout(function() {
+  var hc = document.getElementById('heroReelCanvas');
+  log('heroCanvas size: ' + hc.width + 'x' + hc.height + ' | style: ' + hc.style.width + 'x' + hc.style.height);
+  var wc = document.getElementById('weaponReelCanvas');
+  log('weaponCanvas size: ' + wc.width + 'x' + wc.height + ' | style: ' + wc.style.width + 'x' + wc.style.height);
+}, 500);
+</script>
+</body>
+</html>

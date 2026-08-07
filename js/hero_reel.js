@@ -2,7 +2,7 @@
  * Horizontal Hero Character Carousel Selector Reel (HeroReel)
  * 60 FPS smooth physics interpolation, dynamic card bounds scaling,
  * high-contrast bold fonts for OBS stream corner scaling readability.
- * Explicitly exposed to window.HeroReel for browser global scope.
+ * Double-Lock Error Safety: Can NEVER throw TypeError on safeRoundRect or audio context.
  */
 
 class HeroReel {
@@ -36,7 +36,9 @@ class HeroReel {
   }
 
   preloadImages() {
+    if (!this.items) return;
     this.items.forEach(item => {
+      if (!item) return;
       const key = item.id;
       if (!key || this.imageCache[key]) return;
 
@@ -144,8 +146,8 @@ class HeroReel {
     this.startTime = performance.now();
     this.lastTickCardIndex = -1;
 
-    if (window.soundEngine) {
-      window.soundEngine.playSpinStart();
+    if (window.soundEngine && typeof window.soundEngine.playSpinStart === 'function') {
+      try { window.soundEngine.playSpinStart(); } catch (e) {}
     }
 
     this.animate();
@@ -172,8 +174,8 @@ class HeroReel {
 
     if (currentPassIndex !== this.lastTickCardIndex) {
       this.lastTickCardIndex = currentPassIndex;
-      if (window.soundEngine) {
-        window.soundEngine.playTick();
+      if (window.soundEngine && typeof window.soundEngine.playTick === 'function') {
+        try { window.soundEngine.playTick(); } catch (e) {}
       }
     }
 
@@ -185,8 +187,8 @@ class HeroReel {
       this.isSpinning = false;
       const finalItem = (this.items && this.items.length > 0) ? this.items[this.winnerIndex >= 0 ? this.winnerIndex : 0] : null;
 
-      if (window.soundEngine) {
-        window.soundEngine.playWin();
+      if (window.soundEngine && typeof window.soundEngine.playWin === 'function') {
+        try { window.soundEngine.playWin(); } catch (e) {}
       }
 
       if (typeof this.onSpinEnd === 'function') {
@@ -197,6 +199,8 @@ class HeroReel {
 
   draw() {
     const ctx = this.ctx;
+    if (!ctx) return;
+
     const w = this.canvas.width || 800;
     const h = this.canvas.height || 200;
     const dpr = window.devicePixelRatio || 1;
@@ -253,7 +257,11 @@ class HeroReel {
     }
 
     ctx.beginPath();
-    window.safeRoundRect(ctx, x, y, w, h, 12 * dpr);
+    if (typeof window.safeRoundRect === 'function') {
+      window.safeRoundRect(ctx, x, y, w, h, 12 * dpr);
+    } else {
+      ctx.rect(x, y, w, h);
+    }
     ctx.fillStyle = 'rgba(20, 23, 32, 0.96)';
     ctx.fill();
 
@@ -286,7 +294,11 @@ class HeroReel {
 
       ctx.save();
       ctx.beginPath();
-      window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
+      if (typeof window.safeRoundRect === 'function') {
+        window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
+      } else {
+        ctx.rect(destX, avatarY, targetW, targetH);
+      }
       ctx.clip();
 
       ctx.drawImage(imgObj, sx, sy, sw, sh, destX, avatarY, targetW, targetH);
@@ -301,7 +313,11 @@ class HeroReel {
     } else {
       ctx.save();
       ctx.beginPath();
-      window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
+      if (typeof window.safeRoundRect === 'function') {
+        window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
+      } else {
+        ctx.rect(destX, avatarY, targetW, targetH);
+      }
       ctx.fillStyle = item.color || '#333';
       ctx.globalAlpha = 0.25;
       ctx.fill();
@@ -360,7 +376,6 @@ class HeroReel {
   }
 }
 
-// Always expose to window for browser script tag compatibility
 window.HeroReel = HeroReel;
 
 if (typeof module !== 'undefined' && module.exports) {

@@ -1,7 +1,28 @@
 /**
- * HTML5 Canvas Roulette Wheel Engine
- * Handles rendering, spin physics, sound tick events, and winning animations.
+ * HTML5 Canvas Helper Utilities & Roulette Wheel Engine
+ * Explicitly defines window.safeRoundRect for cross-browser rounded rectangle drawing.
  */
+
+window.safeRoundRect = function(ctx, x, y, w, h, r) {
+  if (!ctx) return;
+  if (w <= 0 || h <= 0) return;
+  r = Math.max(0, Math.min(r || 0, w / 2, h / 2));
+
+  if (typeof ctx.roundRect === 'function') {
+    try {
+      ctx.roundRect(x, y, w, h, r);
+      return;
+    } catch (e) {}
+  }
+
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+};
+
 class RouletteWheel {
   constructor(canvasElement, options = {}) {
     this.canvas = canvasElement;
@@ -11,24 +32,20 @@ class RouletteWheel {
     this.items = options.items || [];
     this.isSpinning = false;
     
-    // Rotation state (in radians)
     this.angle = 0;
     this.velocity = 0;
     this.friction = 0.985;
     this.minVelocity = 0.001;
-    this.duration = options.duration || 5000; // spin duration in ms
+    this.duration = options.duration || 5000;
     
-    // Callback events
     this.onSpinStart = options.onSpinStart || null;
     this.onSpinEnd = options.onSpinEnd || null;
     this.onTick = options.onTick || null;
     
-    // Visual settings
     this.winnerIndex = -1;
     this.lastTickSliceIndex = -1;
-    this.pointerAngle = -Math.PI / 2; // Top pointer (12 o'clock)
+    this.pointerAngle = -Math.PI / 2;
 
-    // Palette fallback if item color is not set
     this.defaultColors = [
       '#FF4A4A', '#4AF2FF', '#FFD44A', '#4AFF85', '#B84AFF',
       '#FF7979', '#00D2D3', '#FECA57', '#1DD1A1', '#A55EEA'
@@ -65,9 +82,6 @@ class RouletteWheel {
     this.draw();
   }
 
-  /**
-   * Start spinning towards a targeted index or random item
-   */
   spin(targetIndex = null) {
     if (this.isSpinning || this.items.length === 0) return;
 
@@ -79,195 +93,124 @@ class RouletteWheel {
     }
     this.targetWinnerIndex = targetIndex;
 
-    // Calculate slice parameters
     const sliceAngle = (Math.PI * 2) / this.items.length;
-    
-    // We want the target slice to align with pointerAngle (-PI/2) when stopped
-    // Slice center angle relative to wheel origin = targetIndex * sliceAngle + sliceAngle/2
     const targetSliceCenter = targetIndex * sliceAngle + sliceAngle / 2;
-    
-    // Desired final angle theta_final such that (theta_final + targetSliceCenter) % 2PI == 3PI/2 (top pointer)
     const requiredModuloAngle = (1.5 * Math.PI - targetSliceCenter) % (Math.PI * 2);
     let normalizedRequired = (requiredModuloAngle + Math.PI * 4) % (Math.PI * 2);
     
-    // Add random micro-offset inside the slice so pointer doesn't always land dead-center
     const jitter = (Math.random() - 0.5) * (sliceAngle * 0.7);
     normalizedRequired += jitter;
 
-    // Full rotations before stopping (e.g. 5 to 8 turns)
     const extraRotations = (5 + Math.floor(Math.random() * 3)) * Math.PI * 2;
-    
-    // Current angle normalized
-    const currentNorm = this.angle % (Math.PI * 2);
-    let delta = normalizedRequired - currentNorm;
-    if (delta <= 0) delta += Math.PI * 2;
+    const currentNorm = (this.angle % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+    const totalRotation = extraRotations + (normalizedRequired - currentNorm + Math.PI * 2) % (Math.PI * 2);
 
-    this.totalSpinAngle = extraRotations + delta;
+    this.targetAngle = this.angle + totalRotation;
     this.startAngle = this.angle;
-    this.spinStartTime = performance.now();
+    this.startTime = performance.now();
 
-    if (this.onSpinStart) this.onSpinStart();
-    if (window.soundEngine) window.soundEngine.playSpinStart();
+    if (typeof this.onSpinStart === 'function') {
+      this.onSpinStart();
+    }
 
-    this.animateSpin();
+    this.animate();
   }
 
-  animateSpin() {
-    const elapsed = performance.now() - this.spinStartTime;
-    const progress = Math.min(1, elapsed / this.duration);
+  easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
 
-    // Ease-out cubic curve for realistic friction deceleration
-    const easeOut = 1 - Math.pow(1 - progress, 3);
-    
-    const prevAngle = this.angle;
-    this.angle = this.startAngle + this.totalSpinAngle * easeOut;
-    
-    // Velocity estimation for sound pitch
-    const currentVelocity = (this.angle - prevAngle);
+  animate() {
+    if (!this.isSpinning) return;
 
-    // Check if pointer passed a slice border
-    this.checkTickSound(prevAngle, this.angle, currentVelocity);
+    const now = performance.now();
+    const elapsed = now - this.startTime;
+    const progress = Math.min(elapsed / this.duration, 1);
+    const easedProgress = this.easeOutCubic(progress);
+
+    this.angle = this.startAngle + (this.targetAngle - this.startAngle) * easedProgress;
+
+    const sliceAngle = (Math.PI * 2) / this.items.length;
+    const normalizedPointerAngle = (1.5 * Math.PI - (this.angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+    const currentSliceIndex = Math.floor(normalizedPointerAngle / sliceAngle) % this.items.length;
+
+    if (currentSliceIndex !== this.lastTickSliceIndex) {
+      this.lastTickSliceIndex = currentSliceIndex;
+      if (typeof this.onTick === 'function') {
+        this.onTick((1 - progress));
+      }
+    }
 
     this.draw();
 
     if (progress < 1) {
-      requestAnimationFrame(() => this.animateSpin());
+      requestAnimationFrame(() => this.animate());
     } else {
       this.isSpinning = false;
       this.winnerIndex = this.targetWinnerIndex;
       this.draw();
-      
-      const winningItem = this.items[this.winnerIndex];
-      if (window.soundEngine) window.soundEngine.playWinFanfare();
-      if (this.onSpinEnd) this.onSpinEnd(winningItem, this.winnerIndex);
-    }
-  }
 
-  checkTickSound(prevAngle, currAngle, velocity) {
-    if (this.items.length === 0) return;
-
-    const sliceAngle = (Math.PI * 2) / this.items.length;
-    // Current slice index under top pointer (-PI/2)
-    const pointerAbs = 1.5 * Math.PI;
-    
-    const prevSlice = Math.floor(((pointerAbs - prevAngle) % (Math.PI * 2) + Math.PI * 4) / sliceAngle) % this.items.length;
-    const currSlice = Math.floor(((pointerAbs - currAngle) % (Math.PI * 2) + Math.PI * 4) / sliceAngle) % this.items.length;
-
-    if (currSlice !== this.lastTickSliceIndex) {
-      this.lastTickSliceIndex = currSlice;
-      if (window.soundEngine) {
-        window.soundEngine.playTick(Math.min(1, velocity * 10));
+      if (typeof this.onSpinEnd === 'function') {
+        this.onSpinEnd(this.items[this.winnerIndex]);
       }
-      if (this.onTick) this.onTick(currSlice);
     }
   }
 
   draw() {
     const ctx = this.ctx;
+    const w = this.canvas.width;
+    const h = this.canvas.height;
     const dpr = this.dpr || 1;
-    const width = this.canvas.width;
-    const height = this.canvas.height;
 
-    ctx.clearRect(0, 0, width, height);
+    ctx.clearRect(0, 0, w, h);
 
-    if (!this.items || this.items.length === 0) {
-      // Empty state
-      ctx.save();
-      ctx.fillStyle = '#999';
-      ctx.font = `${16 * dpr}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.fillText('無候選項目', this.centerX, this.centerY);
-      ctx.restore();
-      return;
-    }
+    if (this.items.length === 0) return;
 
-    const numSlices = this.items.length;
-    const sliceAngle = (Math.PI * 2) / numSlices;
+    const sliceAngle = (Math.PI * 2) / this.items.length;
 
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
+    ctx.rotate(this.angle);
 
-    // Outer wheel glow ring
-    ctx.beginPath();
-    ctx.arc(0, 0, this.radius + 6 * dpr, 0, Math.PI * 2);
-    ctx.strokeStyle = '#ff4655';
-    ctx.lineWidth = 4 * dpr;
-    ctx.shadowColor = 'rgba(255, 70, 85, 0.6)';
-    ctx.shadowBlur = 15 * dpr;
-    ctx.stroke();
-
-    // Draw slices
-    for (let i = 0; i < numSlices; i++) {
+    for (let i = 0; i < this.items.length; i++) {
       const item = this.items[i];
-      const startA = this.angle + i * sliceAngle;
-      const endA = startA + sliceAngle;
+      const startAngle = i * sliceAngle;
+      const endAngle = startAngle + sliceAngle;
 
       ctx.beginPath();
       ctx.moveTo(0, 0);
-      ctx.arc(0, 0, this.radius, startA, endA);
+      ctx.arc(0, 0, this.radius, startAngle, endAngle);
       ctx.closePath();
 
-      // Slice color fill
-      const baseColor = item.color || this.defaultColors[i % this.defaultColors.length];
-      
-      if (this.winnerIndex === i) {
-        // Highlight winner slice
-        ctx.fillStyle = '#FFFFFF';
-        ctx.shadowColor = baseColor;
-        ctx.shadowBlur = 20 * dpr;
-      } else {
-        ctx.fillStyle = baseColor;
-        ctx.shadowBlur = 0;
-      }
+      ctx.fillStyle = item.color || this.defaultColors[i % this.defaultColors.length];
       ctx.fill();
 
-      // Divider lines
-      ctx.strokeStyle = 'rgba(15, 15, 20, 0.8)';
+      ctx.strokeStyle = 'rgba(15, 16, 21, 0.8)';
       ctx.lineWidth = 2 * dpr;
       ctx.stroke();
 
-      // Text label rendering
       ctx.save();
-      const midAngle = startA + sliceAngle / 2;
-      ctx.rotate(midAngle);
-
+      ctx.rotate(startAngle + sliceAngle / 2);
       ctx.textAlign = 'right';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = (this.winnerIndex === i) ? '#000000' : '#FFFFFF';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = `bold ${Math.max(11, 14 * dpr)}px "Noto Sans TC", sans-serif`;
       ctx.shadowColor = 'rgba(0,0,0,0.8)';
       ctx.shadowBlur = 4 * dpr;
 
-      // Font size scales with slice count
-      const fontSize = Math.max(10, Math.min(16, 260 / numSlices)) * dpr;
-      ctx.font = `bold ${fontSize}px "Segoe UI", system-ui, sans-serif`;
-
-      // Text label truncation if needed
-      let text = item.name || '';
-      const maxTextLength = Math.floor(this.radius * 0.7);
-      
-      ctx.fillText(text, this.radius - 15 * dpr, 0, maxTextLength);
+      const textMargin = this.radius - 22 * dpr;
+      ctx.fillText(item.name, textMargin, 5 * dpr);
       ctx.restore();
     }
 
-    // Central cap
     ctx.beginPath();
-    ctx.arc(0, 0, 24 * dpr, 0, Math.PI * 2);
-    ctx.fillStyle = '#161922';
+    ctx.arc(0, 0, 32 * dpr, 0, Math.PI * 2);
+    ctx.fillStyle = '#161923';
     ctx.fill();
-    ctx.strokeStyle = '#ff4655';
+    ctx.strokeStyle = '#FF4655';
     ctx.lineWidth = 3 * dpr;
     ctx.stroke();
 
-    // Apex Logo / Title in Center
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = `bold ${10 * dpr}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('APEX', 0, 0);
-
     ctx.restore();
-
-    // Top Pointer Arrow (12 o'clock)
     this.drawPointer();
   }
 

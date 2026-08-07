@@ -41,7 +41,6 @@ class SoundEngine {
       const gain = this.audioCtx.createGain();
 
       osc.type = 'triangle';
-      // Pitch goes up slightly as wheel turns faster
       const freq = 600 + (velocityRatio * 400) + Math.random() * 50;
       osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
       osc.frequency.exponentialRampToValueAtTime(120, this.audioCtx.currentTime + 0.03);
@@ -54,9 +53,7 @@ class SoundEngine {
 
       osc.start();
       osc.stop(this.audioCtx.currentTime + 0.035);
-    } catch (e) {
-      // Audio context might be blocked until user gesture
-    }
+    } catch (e) {}
   }
 
   // Sound played when spin initiates
@@ -91,34 +88,38 @@ class SoundEngine {
     this.init();
     if (!this.audioCtx) return;
 
-    const notes = [
-      { note: 523.25, duration: 0.1, delay: 0 },    // C5
-      { note: 659.25, duration: 0.1, delay: 0.1 },  // E5
-      { note: 783.99, duration: 0.1, delay: 0.2 },  // G5
-      { note: 1046.50, duration: 0.4, delay: 0.3 }  // C6
-    ];
+    try {
+      const notes = [
+        { note: 523.25, duration: 0.1, delay: 0 },
+        { note: 659.25, duration: 0.1, delay: 0.1 },
+        { note: 783.99, duration: 0.1, delay: 0.2 },
+        { note: 1046.50, duration: 0.4, delay: 0.3 }
+      ];
 
-    const now = this.audioCtx.currentTime;
-
-    notes.forEach(({ note, duration, delay }) => {
-      try {
+      notes.forEach(n => {
         const osc = this.audioCtx.createOscillator();
         const gain = this.audioCtx.createGain();
 
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(note, now + delay);
+        osc.frequency.setValueAtTime(n.note, this.audioCtx.currentTime + n.delay);
 
-        gain.gain.setValueAtTime(this.volume * 0.5, now + delay);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + delay + duration);
+        gain.gain.setValueAtTime(0.01, this.audioCtx.currentTime + n.delay);
+        gain.gain.linearRampToValueAtTime(this.volume * 0.5, this.audioCtx.currentTime + n.delay + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + n.delay + n.duration);
 
         osc.connect(gain);
         gain.connect(this.audioCtx.destination);
 
-        osc.start(now + delay);
-        osc.stop(now + delay + duration);
-      } catch (e) {}
-    });
+        osc.start(this.audioCtx.currentTime + n.delay);
+        osc.stop(this.audioCtx.currentTime + n.delay + n.duration);
+      });
+    } catch (e) {}
+  }
+
+  playWin() {
+    this.playWinFanfare();
   }
 }
 
+window.SoundEngine = SoundEngine;
 window.soundEngine = new SoundEngine();

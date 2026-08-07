@@ -2,7 +2,7 @@
  * Horizontal Weapon Reel Selector (WeaponReel)
  * 60 FPS smooth physics interpolation, dynamic card bounds scaling,
  * high-contrast bold fonts for OBS stream corner scaling readability.
- * Explicitly exposed to window.WeaponReel for browser global scope.
+ * Double-Lock Error Safety: Can NEVER throw TypeError on safeRoundRect or audio context.
  */
 
 class WeaponReel {
@@ -36,7 +36,9 @@ class WeaponReel {
   }
 
   preloadImages() {
+    if (!this.items) return;
     this.items.forEach(item => {
+      if (!item) return;
       const key = item.id;
       if (!key || this.imageCache[key]) return;
 
@@ -144,6 +146,10 @@ class WeaponReel {
     this.startTime = performance.now();
     this.lastTickCardIndex = -1;
 
+    if (window.soundEngine && typeof window.soundEngine.playSpinStart === 'function') {
+      try { window.soundEngine.playSpinStart(); } catch (e) {}
+    }
+
     this.animate();
   }
 
@@ -168,6 +174,9 @@ class WeaponReel {
 
     if (currentPassIndex !== this.lastTickCardIndex) {
       this.lastTickCardIndex = currentPassIndex;
+      if (window.soundEngine && typeof window.soundEngine.playTick === 'function') {
+        try { window.soundEngine.playTick(); } catch (e) {}
+      }
     }
 
     this.draw();
@@ -186,6 +195,8 @@ class WeaponReel {
 
   draw() {
     const ctx = this.ctx;
+    if (!ctx) return;
+
     const w = this.canvas.width || 800;
     const h = this.canvas.height || 200;
     const dpr = window.devicePixelRatio || 1;
@@ -242,7 +253,11 @@ class WeaponReel {
     }
 
     ctx.beginPath();
-    window.safeRoundRect(ctx, x, y, w, h, 12 * dpr);
+    if (typeof window.safeRoundRect === 'function') {
+      window.safeRoundRect(ctx, x, y, w, h, 12 * dpr);
+    } else {
+      ctx.rect(x, y, w, h);
+    }
     ctx.fillStyle = 'rgba(20, 23, 32, 0.96)';
     ctx.fill();
 
@@ -275,7 +290,11 @@ class WeaponReel {
 
       ctx.save();
       ctx.beginPath();
-      window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
+      if (typeof window.safeRoundRect === 'function') {
+        window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
+      } else {
+        ctx.rect(destX, avatarY, targetW, targetH);
+      }
       ctx.clip();
 
       ctx.drawImage(imgObj, 0, 0, imgW, imgH, drawX, drawY, drawW, drawH);
@@ -290,7 +309,11 @@ class WeaponReel {
     } else {
       ctx.save();
       ctx.beginPath();
-      window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
+      if (typeof window.safeRoundRect === 'function') {
+        window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
+      } else {
+        ctx.rect(destX, avatarY, targetW, targetH);
+      }
       ctx.fillStyle = item.color || '#333';
       ctx.globalAlpha = 0.25;
       ctx.fill();
@@ -349,7 +372,6 @@ class WeaponReel {
   }
 }
 
-// Always expose to window for browser script tag compatibility
 window.WeaponReel = WeaponReel;
 
 if (typeof module !== 'undefined' && module.exports) {
