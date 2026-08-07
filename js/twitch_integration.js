@@ -1,10 +1,9 @@
 /**
  * Twitch Integration Module for Apex OBS Visual Roulette
- * Connects directly to Twitch IRC / WebSocket to listen for:
- * 1. Twitch Channel Points Redemptions (忠誠點數兌換)
- * 2. Twitch Chat Commands (!spin, !spinhero, !spinweapon)
+ * Handles Twitch Channel Points Redemptions & Chat Commands.
  * 
- * Cleaned: All emojis removed per user request.
+ * Accurately detects IRC `@custom-reward-id` tags for Channel Points Redemptions,
+ * separating real point redemptions from regular chat text messages.
  */
 
 class TwitchIntegration {
@@ -23,7 +22,6 @@ class TwitchIntegration {
 
     this.ws = null;
     this.isConnected = false;
-    this.reconnectTimer = null;
   }
 
   connect(channelName) {
@@ -40,7 +38,7 @@ class TwitchIntegration {
       this.ws = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
 
       this.ws.onopen = () => {
-        this.ws.send('CAP REQ :twitch.tv/tags twitch.tv/commands');
+        this.ws.send('CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership');
         this.ws.send(`NICK justinfan${Math.floor(Math.random() * 80000 + 10000)}`);
         this.ws.send(`JOIN #${this.channel}`);
       };
@@ -65,7 +63,6 @@ class TwitchIntegration {
   }
 
   disconnect() {
-    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     if (this.ws) {
       try { this.ws.close(); } catch (e) {}
       this.ws = null;
@@ -107,7 +104,6 @@ class TwitchIntegration {
 
   parseChatMessage(rawLine) {
     try {
-      const parts = rawLine.split(' ');
       let tags = {};
       let messageContent = '';
       let username = '觀眾';
@@ -135,23 +131,23 @@ class TwitchIntegration {
         messageContent = rawLine.substring(msgIndex + ` PRIVMSG #${this.channel} :`.length).trim();
       }
 
-      // 1. Detect Channel Points Redemption (custom-reward-id tag)
+      // 1. Detect REAL Channel Points Redemption (custom-reward-id tag sent by Twitch)
       const customRewardId = tags['custom-reward-id'];
-      const rewardMsg = tags['msg-id'];
+      const isRedemptionTag = Boolean(customRewardId) || rawLine.includes('custom-reward-id=');
 
-      if (customRewardId || rewardMsg === 'highlighted-message' || (this.enableReward && messageContent.includes(this.rewardName))) {
+      if (isRedemptionTag) {
         if (this.onTwitchNotice) {
-          this.onTwitchNotice(`觀眾 @${username} 兌換了忠誠點數【${this.rewardName}】！`);
+          this.onTwitchNotice(`觀眾 @${username} 兌換了忠誠點數！`);
         }
         if (this.onSpinBoth) this.onSpinBoth();
         return;
       }
 
-      // 2. Detect Chat Commands (!spin, !spinhero, !spinweapon)
-      if (this.enableChatCmds && messageContent.startsWith('!')) {
+      // 2. Detect Chat Commands (!spin, !spinhero, !spinweapon, !抽輪盤)
+      if (this.enableChatCmds) {
         const cmd = messageContent.toLowerCase();
 
-        if (cmd === '!spin' || cmd === '!apex' || cmd === '!抽' || cmd === '!spinboth') {
+        if (cmd === '!spin' || cmd === '!apex' || cmd === '!抽' || cmd === '!spinboth' || (this.rewardName && cmd === `!${this.rewardName.toLowerCase()}`)) {
           if (this.onTwitchNotice) this.onTwitchNotice(`觀眾 @${username} 觸發了指令 !spin`);
           if (this.onSpinBoth) this.onSpinBoth();
         } else if (cmd === '!spinhero' || cmd === '!hero' || cmd === '!抽英雄') {
