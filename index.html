@@ -18,6 +18,9 @@
         <h1>Apex 轉盤小幫手</h1>
       </div>
       <div class="header-controls">
+        <button id="toggleViewModeBtn" class="btn" style="background: rgba(16, 185, 129, 0.2); border-color: #10B981; color: #6EE7B7;">
+          🎥 切換直播觀眾畫面 (Overlay)
+        </button>
         <button id="obsGuideBtn" class="btn">OBS 整合教學</button>
       </div>
     </header>
@@ -51,7 +54,7 @@
           </div>
         </div>
 
-        <!-- Spin Action Bar -->
+        <!-- Spin Action Bar (Hidden in Stream Overlay View) -->
         <div class="spin-action-bar">
           <button id="spinBothBtn" class="btn btn-primary btn-large-spin">
             一鍵全抽
@@ -62,7 +65,7 @@
           </div>
         </div>
 
-        <!-- Result Combination Banner -->
+        <!-- Result Combination Banner (Hidden in Stream Overlay View) -->
         <div id="resultBanner" class="result-banner">
           <div class="result-title">隨機組合結果</div>
           <div id="resultCombination" class="result-combination">請點擊上方按鈕或由觀眾扣點抽籤！</div>
@@ -234,10 +237,10 @@
             點擊右側側邊欄 <code>Twitch 連動</code>，填入您的頻道名稱（如 <code>arnold1124</code>）並點擊連線！觀眾兌換忠誠點數即會自動觸發排隊抽籤！
           </li>
           <li>
-            <strong>設定為 OBS 實況圖層（畫面呈現）：</strong>
+            <strong>設定為 OBS 實況圖層（畫面呈現 - 僅保留英雄+槍械+排隊清單）：</strong>
             <br>
             在 OBS「來源」視窗點擊 <code>+</code> &rarr; 選擇 <code>瀏覽器</code>。
-            網址填寫 <code>http://localhost:8000/?mode=overlay</code>（即可啟用透明背景圖層）。
+            網址填寫 <code>http://localhost:8000/?mode=overlay</code>（即可啟用無按鈕純淨圖層）。
           </li>
           <li>
             <strong>設定為 OBS 獨立控制面板（實況主控場）：</strong>

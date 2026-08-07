@@ -9,7 +9,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   // Check URL params for OBS overlay mode & channel parameter
   const urlParams = new URLSearchParams(window.location.search);
-  const isOverlayMode = urlParams.get('mode') === 'overlay';
+  const isOverlayMode = urlParams.get('mode') === 'overlay' || window.location.search.includes('overlay');
   const urlChannel = urlParams.get('channel') || urlParams.get('twitch');
   const urlReward = urlParams.get('reward');
 
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function applyAudioMuteState() {
     if (!window.soundEngine) return;
 
-    if (isOverlayMode) {
+    if (document.body.classList.contains('overlay-mode')) {
       // OBS Browser Source Overlay ALWAYS plays sound for stream viewers
       window.soundEngine.setMuted(false);
     } else {
@@ -588,6 +588,19 @@ document.addEventListener('DOMContentLoaded', () => {
       if (twitchIntegration) {
         twitchIntegration.clearQueue();
       }
+    });
+  }
+
+  // View Mode Toggle Button (Switch between Streamer Dock View and Pure Stream Viewer Overlay View)
+  const toggleViewModeBtn = document.getElementById('toggleViewModeBtn');
+  if (toggleViewModeBtn) {
+    toggleViewModeBtn.addEventListener('click', () => {
+      document.body.classList.toggle('overlay-mode');
+      const isNowOverlay = document.body.classList.contains('overlay-mode');
+      toggleViewModeBtn.innerText = isNowOverlay ? '⚙️ 切換實況主控制面板' : '🎥 切換直播觀眾畫面 (Overlay)';
+      applyAudioMuteState();
+      if (heroReel) heroReel.resizeCanvas();
+      if (weaponReel) weaponReel.resizeCanvas();
     });
   }
 
