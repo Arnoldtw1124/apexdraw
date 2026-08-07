@@ -46,12 +46,12 @@ class WeaponReel {
       const slug = item.id.replace(/_/g, '-');
 
       const candidates = [
+        `image/${fileKey}.webp`,
+        `image/${fileKey}.avif`,
+        `image/${fileKey}.png`,
         `image/apex-grid-tile-weapons-${fileKey}.avif`,
         `image/apex-grid-tile-weapons-${slug}.avif`,
-        `image/apex-grid-tile-weapons-${fileKey}.webp`,
-        `image/apex-grid-tile-weapons-${fileKey}.png`,
-        `image/${fileKey}.avif`,
-        `images/apex-grid-tile-weapons-${fileKey}.avif`
+        `image/apex-grid-tile-weapons-${fileKey}.webp`
       ];
 
       let candidateIndex = 0;
