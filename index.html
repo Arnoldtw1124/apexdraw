@@ -3,25 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Apex Legends 隨機英雄與槍械卡片選單 - OBS Overlay & Plugin</title>
+  <title>Apex Legends OBS Visual Roulette & Selector</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
-  <!-- Particle Confetti Canvas -->
+  <!-- Canvas Confetti Overlay -->
   <canvas id="confettiCanvas"></canvas>
 
   <div class="app-container">
-    <!-- Header Navigation -->
+    <!-- Top Application Header -->
     <header class="app-header">
       <div class="brand-logo">
         <div class="apex-icon"></div>
-        <h1>APEX HERO & WEAPON RANDOMIZER</h1>
+        <h1>APEX LEGENDS OBS ROULETTE</h1>
       </div>
       <div class="header-controls">
-        <button id="obsGuideBtn" class="btn">
-          <span>📖 OBS 設定指南</span>
-        </button>
+        <button id="obsGuideBtn" class="btn">📹 OBS 整合教學</button>
       </div>
     </header>
 
@@ -35,6 +32,11 @@
         <div id="resultBanner" class="result-banner">
           <div class="result-title">🎯 英雄與槍械隨機組合 🎯</div>
           <div id="resultCombination" class="result-combination">請點擊下方旋轉按鈕！</div>
+        </div>
+
+        <!-- Twitch Realtime Live Notice Banner -->
+        <div id="twitchNoticeBanner" class="twitch-notice-banner" style="display: none;">
+          <span id="twitchNoticeText">🟣 Twitch 實況動態訊息</span>
         </div>
 
         <div class="wheels-container">
@@ -72,6 +74,7 @@
         <div class="tab-nav">
           <button class="tab-btn active" data-tab="tabLegends">英雄庫</button>
           <button class="tab-btn" data-tab="tabWeapons">槍械庫</button>
+          <button class="tab-btn" data-tab="tabTwitch">🟣 Twitch 連動</button>
           <button class="tab-btn" data-tab="tabSettings">設定</button>
         </div>
 
@@ -97,7 +100,35 @@
           </div>
         </div>
 
-        <!-- Tab 3: Settings -->
+        <!-- Tab 3: Twitch Integration -->
+        <div id="tabTwitch" class="tab-content">
+          <div id="twitchStatusBadge" class="twitch-status-badge disconnected">
+            ⚪ Twitch 未連線
+          </div>
+
+          <div class="setting-group">
+            <label for="twitchChannelInput">🎮 Twitch 頻道名稱 (Channel ID)</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="twitchChannelInput" placeholder="例如: arnoldtw1124" style="flex: 1; padding: 8px 12px; background: var(--apex-card); border: 1px solid var(--apex-border); color: #fff; border-radius: var(--radius-md);">
+              <button id="connectTwitchBtn" class="btn btn-primary" style="padding: 8px 16px;">連線</button>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <label for="twitchRewardInput">🎁 忠誠點數兌換項目名稱 (Reward Name)</label>
+            <input type="text" id="twitchRewardInput" value="抽輪盤" placeholder="例如: 抽輪盤" style="padding: 8px 12px; background: var(--apex-card); border: 1px solid var(--apex-border); color: #fff; border-radius: var(--radius-md);">
+            <span style="font-size: 0.8rem; color: var(--text-sub);">觀眾於 Twitch Live 兌換此名稱點數時自動觸發抽籤</span>
+          </div>
+
+          <div class="setting-group" style="margin-top: 10px;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+              <input type="checkbox" id="enableChatCmdsCheck" checked style="width: 18px; height: 18px; accent-color: var(--apex-red);">
+              <span>開啟聊天室指令 (!spin, !hero, !weapon)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Tab 4: Settings -->
         <div id="tabSettings" class="tab-content">
           <div class="setting-group">
             <label for="volumeSlider">🔊 音效音量</label>
@@ -129,6 +160,11 @@
             您可將英雄/槍械圖片放置於 <code>image/</code> 資料夾中。英雄格式為 <code>apex-grid-tile-legends-XXX.avif</code>，槍械格式為 <code>apex-grid-tile-weapons-XXX.avif</code>。
           </li>
           <li>
+            <strong>Twitch 忠誠點數與聊天室連動：</strong>
+            <br>
+            點擊右側側邊欄 <code>🟣 Twitch 連動</code>，輸入您的 Twitch 頻道名稱（如 <code>arnoldtw1124</code>）並點擊連線！觀眾兌換忠誠點數或在聊天室輸入 <code>!spin</code> 即會自動啟動輪盤！
+          </li>
+          <li>
             <strong>設定為 OBS 實況圖層 (Overlay Mode)：</strong>
             <br>
             在 OBS「來源」視窗點擊 <code>+</code> &rarr; 選擇 <code>瀏覽器 (Browser)</code>。
@@ -151,6 +187,7 @@
   <script src="js/hero_reel.js"></script>
   <script src="js/weapon_reel.js"></script>
   <script src="js/wheel.js"></script>
+  <script src="js/twitch_integration.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

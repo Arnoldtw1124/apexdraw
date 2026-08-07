@@ -1,7 +1,7 @@
 /**
  * Main Application Controller for Apex Legends OBS Plugin
  * Manages Dual Horizontal Carousels (Hero Reel & Weapon Reel),
- * Audio, Hotkeys, Filters, & LocalStorage persistence.
+ * Audio, Hotkeys, Filters, Twitch Integration & LocalStorage persistence.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -20,7 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
     spinDuration: 4500,
     soundVolume: 0.5,
     lastSelectedLegend: null,
-    lastSelectedWeapon: null
+    lastSelectedWeapon: null,
+    twitchChannel: '',
+    twitchReward: '抽輪盤',
+    twitchEnableCmds: true
   };
 
   // Load state from localStorage
@@ -59,6 +62,47 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // --- Twitch Integration Setup ---
+  let twitchIntegration = null;
+
+  if (window.TwitchIntegration) {
+    twitchIntegration = new TwitchIntegration({
+      channel: state.twitchChannel,
+      rewardName: state.twitchReward,
+      enableChatCmds: state.twitchEnableCmds,
+      onSpinBoth: () => spinBoth(),
+      onSpinLegend: () => spinLegendOnly(),
+      onSpinWeapon: () => spinWeaponOnly(),
+      onStatusChange: (statusState, message) => updateTwitchBadge(statusState, message),
+      onTwitchNotice: (msg) => showTwitchNotice(msg)
+    });
+
+    if (state.twitchChannel) {
+      twitchIntegration.connect(state.twitchChannel);
+    }
+  }
+
+  function updateTwitchBadge(statusState, message) {
+    const badge = document.getElementById('twitchStatusBadge');
+    if (!badge) return;
+
+    badge.className = `twitch-status-badge ${statusState}`;
+    badge.innerText = message;
+  }
+
+  function showTwitchNotice(msg) {
+    const banner = document.getElementById('twitchNoticeBanner');
+    const text = document.getElementById('twitchNoticeText');
+
+    if (banner && text) {
+      text.innerText = msg;
+      banner.style.display = 'block';
+      setTimeout(() => {
+        banner.style.display = 'none';
+      }, 5500);
+    }
+  }
+
   // --- State Persistence & Filters ---
 
   function loadSavedState() {
@@ -66,6 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const savedLegendIds = localStorage.getItem('apex_roulette_legends');
       const savedWeaponIds = localStorage.getItem('apex_roulette_weapons');
       const savedVolume = localStorage.getItem('apex_roulette_volume');
+      const savedTwitchCh = localStorage.getItem('apex_roulette_twitch_channel');
+      const savedTwitchRw = localStorage.getItem('apex_roulette_twitch_reward');
 
       if (savedLegendIds) {
         const ids = JSON.parse(savedLegendIds);
@@ -87,6 +133,10 @@ document.addEventListener('DOMContentLoaded', () => {
         state.soundVolume = parseFloat(savedVolume);
         if (window.soundEngine) window.soundEngine.setVolume(state.soundVolume);
       }
+
+      if (savedTwitchCh) state.twitchChannel = savedTwitchCh;
+      if (savedTwitchRw) state.twitchReward = savedTwitchRw;
+
     } catch (e) {
       state.activeLegends = [...APEX_DATA.legends];
       state.activeWeapons = [...APEX_DATA.weapons];
@@ -98,6 +148,8 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('apex_roulette_legends', JSON.stringify(state.activeLegends.map(l => l.id)));
       localStorage.setItem('apex_roulette_weapons', JSON.stringify(state.activeWeapons.map(w => w.id)));
       localStorage.setItem('apex_roulette_volume', state.soundVolume.toString());
+      localStorage.setItem('apex_roulette_twitch_channel', state.twitchChannel);
+      localStorage.setItem('apex_roulette_twitch_reward', state.twitchReward);
     } catch (e) {}
   }
 
@@ -397,9 +449,37 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Controls Sliders
+  // Controls Sliders & Twitch Bindings
   const volumeSlider = document.getElementById('volumeSlider');
   const durationSlider = document.getElementById('durationSlider');
+  const twitchChannelInput = document.getElementById('twitchChannelInput');
+  const twitchRewardInput = document.getElementById('twitchRewardInput');
+  const enableChatCmdsCheck = document.getElementById('enableChatCmdsCheck');
+  const connectTwitchBtn = document.getElementById('connectTwitchBtn');
+
+  if (twitchChannelInput) twitchChannelInput.value = state.twitchChannel;
+  if (twitchRewardInput) twitchRewardInput.value = state.twitchReward;
+
+  if (connectTwitchBtn) {
+    connectTwitchBtn.addEventListener('click', () => {
+      const channel = twitchChannelInput.value.trim();
+      state.twitchChannel = channel;
+      state.twitchReward = twitchRewardInput.value.trim() || '抽輪盤';
+      saveState();
+
+      if (twitchIntegration) {
+        twitchIntegration.rewardName = state.twitchReward;
+        twitchIntegration.connect(state.twitchChannel);
+      }
+    });
+  }
+
+  if (enableChatCmdsCheck) {
+    enableChatCmdsCheck.addEventListener('change', (e) => {
+      state.twitchEnableCmds = e.target.checked;
+      if (twitchIntegration) twitchIntegration.enableChatCmds = state.twitchEnableCmds;
+    });
+  }
 
   if (volumeSlider) {
     volumeSlider.value = state.soundVolume;

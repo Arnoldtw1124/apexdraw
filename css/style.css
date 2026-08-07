@@ -290,6 +290,60 @@ body.overlay-mode .wheels-container {
   text-shadow: 0 0 12px rgba(255, 255, 255, 0.8), 0 0 20px var(--apex-red);
 }
 
+/* Twitch Integration Badge & Notice Banner */
+.twitch-status-badge {
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+}
+
+.twitch-status-badge.connected {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid #10B981;
+  color: #10B981;
+}
+
+.twitch-status-badge.connecting {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid #F59E0B;
+  color: #F59E0B;
+}
+
+.twitch-status-badge.disconnected {
+  background: rgba(156, 163, 175, 0.15);
+  border: 1px solid #9CA3AF;
+  color: #9CA3AF;
+}
+
+.twitch-status-badge.error {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid #EF4444;
+  color: #EF4444;
+}
+
+.twitch-notice-banner {
+  width: 100%;
+  background: linear-gradient(90deg, rgba(145, 70, 255, 0.2) 0%, rgba(145, 70, 255, 0.4) 50%, rgba(145, 70, 255, 0.2) 100%);
+  border: 1px solid #9146FF;
+  border-radius: var(--radius-lg);
+  padding: 10px 20px;
+  text-align: center;
+  color: #E0C3FF;
+  font-weight: 700;
+  font-size: 1.05rem;
+  box-shadow: 0 0 20px rgba(145, 70, 255, 0.4);
+  animation: twitch-pulse 2s infinite alternate;
+}
+
+@keyframes twitch-pulse {
+  0% { box-shadow: 0 0 15px rgba(145, 70, 255, 0.3); }
+  100% { box-shadow: 0 0 30px rgba(145, 70, 255, 0.8); }
+}
+
 /* Right Sidebar Editor & Controls */
 .sidebar-panel {
   width: 400px;
