@@ -1,18 +1,18 @@
 /**
  * Twitch Integration Module for Apex OBS Visual Roulette
- * Handles Twitch Channel Points Redemptions, Highlighted Messages & Chat Commands.
+ * Handles Twitch Channel Points Redemptions, Custom Rewards, Highlighted Messages & Chat Commands.
  * 
  * Supports:
- * 1. custom-reward-id (Custom Channel Points rewards with text)
+ * 1. custom-reward-id (Custom Channel Points rewards with text input)
  * 2. msg-id=highlighted-message (Built-in Twitch 醒目標示我的訊息 points reward)
- * 3. Exact & Partial Reward Name matching in chat
+ * 3. Exact, partial & command-style Reward Name matching in chat
  * 4. Real-time Debug Log inspector
  */
 
 class TwitchIntegration {
   constructor(options = {}) {
     this.channel = options.channel || '';
-    this.rewardName = options.rewardName || '抽輪盤';
+    this.rewardName = options.rewardName || '抽隨機英雄和槍枝';
     this.enableChatCmds = options.enableChatCmds !== false;
     this.enableReward = options.enableReward !== false;
 
@@ -155,10 +155,19 @@ class TwitchIntegration {
       
       const isCustomReward = Boolean(customRewardId) || rawLine.includes('custom-reward-id=');
       const isHighlightedMsg = msgId === 'highlighted-message';
-      const isRewardNameMatch = this.rewardName && messageContent.toLowerCase().includes(this.rewardName.toLowerCase());
+
+      const cleanContent = messageContent.toLowerCase().trim();
+      const cleanTargetReward = this.rewardName ? this.rewardName.toLowerCase().trim() : '';
+
+      const isRewardNameMatch = cleanTargetReward && (
+        cleanContent.includes(cleanTargetReward) || 
+        cleanContent === `!${cleanTargetReward}`
+      );
 
       if (isCustomReward || isHighlightedMsg || isRewardNameMatch) {
-        this.log(`🎯 觸發點數兌換！來自 @${username} (匹配項目: ${this.rewardName || '點數兌換'})`);
+        const matchType = isCustomReward ? '自訂點數' : isHighlightedMsg ? '醒目標示' : '名稱匹配';
+        this.log(`🎯 觸發點數兌換！來自 @${username} (${matchType})`);
+        
         if (this.onTwitchNotice) {
           this.onTwitchNotice(`觀眾 @${username} 兌換了忠誠點數【${this.rewardName || '點數兌換'}】！`);
         }
@@ -166,11 +175,11 @@ class TwitchIntegration {
         return;
       }
 
-      // 2. Detect Chat Commands (!spin, !spinhero, !spinweapon, !抽輪盤)
+      // 2. Detect Chat Commands (!spin, !spinhero, !spinweapon)
       if (this.enableChatCmds) {
         const cmd = messageContent.toLowerCase();
 
-        if (cmd === '!spin' || cmd === '!apex' || cmd === '!抽' || cmd === '!spinboth' || (this.rewardName && cmd === `!${this.rewardName.toLowerCase()}`)) {
+        if (cmd === '!spin' || cmd === '!apex' || cmd === '!抽' || cmd === '!spinboth') {
           this.log(`🎮 觸發聊天室指令 !spin 來自 @${username}`);
           if (this.onTwitchNotice) this.onTwitchNotice(`觀眾 @${username} 觸發了指令 !spin`);
           if (this.onSpinBoth) this.onSpinBoth();
