@@ -2,6 +2,7 @@
  * Horizontal Weapon Reel Selector (WeaponReel)
  * 60 FPS smooth physics interpolation, dynamic card bounds scaling,
  * high-contrast bold fonts for OBS stream corner scaling readability.
+ * Guaranteed Non-Zero Canvas Bounds for OBS CEF Browser Source.
  */
 
 class WeaponReel {
@@ -29,6 +30,9 @@ class WeaponReel {
 
     this.resizeCanvas();
     window.addEventListener('resize', () => this.resizeCanvas());
+    window.addEventListener('load', () => this.resizeCanvas());
+    setTimeout(() => this.resizeCanvas(), 300);
+    setTimeout(() => this.resizeCanvas(), 1000);
   }
 
   preloadImages() {
@@ -77,7 +81,11 @@ class WeaponReel {
   }
 
   setItems(newItems) {
-    this.items = newItems;
+    if (newItems && newItems.length > 0) {
+      this.items = newItems;
+    } else if (typeof APEX_DATA !== 'undefined' && APEX_DATA.weapons) {
+      this.items = [...APEX_DATA.weapons];
+    }
     this.winnerIndex = -1;
     this.lastTickCardIndex = -1;
     this.preloadImages();
@@ -86,14 +94,16 @@ class WeaponReel {
 
   resizeCanvas() {
     const parent = this.canvas.parentElement;
-    if (!parent) return;
+    let width = 800;
+    let height = 200;
 
-    let width = parent.clientWidth || parent.offsetWidth;
-    if (!width || width < 200) {
-      width = parent.parentElement ? (parent.parentElement.clientWidth || 800) : 800;
+    if (parent) {
+      width = parent.clientWidth || parent.offsetWidth || 800;
+      height = parent.clientHeight || parent.offsetHeight || 200;
     }
-    let height = parent.clientHeight || parent.offsetHeight || 180;
-    if (height < 100) height = 180;
+
+    if (width < 100) width = 800;
+    if (height < 50) height = 200;
 
     const dpr = window.devicePixelRatio || 1;
 
@@ -173,7 +183,13 @@ class WeaponReel {
 
     ctx.clearRect(0, 0, w, h);
 
-    if (this.items.length === 0) return;
+    if (!this.items || this.items.length === 0) {
+      if (typeof APEX_DATA !== 'undefined' && APEX_DATA.weapons) {
+        this.items = [...APEX_DATA.weapons];
+      } else {
+        return;
+      }
+    }
 
     const itemStep = (this.cardWidth + this.cardGap) * dpr;
     const cardW = this.cardWidth * dpr;
