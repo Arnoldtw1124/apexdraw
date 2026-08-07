@@ -404,14 +404,26 @@ document.addEventListener('DOMContentLoaded', () => {
     return [...APEX_DATA.weapons];
   }
 
+  // --- Pure 1/N Independent Probability Randomizer (Web Crypto API) ---
+  function getRandomIndex(totalCount) {
+    if (!totalCount || totalCount <= 0) return 0;
+    if (window.crypto && window.crypto.getRandomValues) {
+      const array = new Uint32Array(1);
+      window.crypto.getRandomValues(array);
+      // Uniform mapping to range [0, totalCount - 1]
+      return array[0] % totalCount;
+    }
+    return Math.floor(Math.random() * totalCount);
+  }
+
   // --- Synchronized Spin Triggers ---
 
   function spinBoth() {
     const availableLegends = getFilteredLegends();
     const availableWeapons = getFilteredWeapons();
 
-    const legendIndex = Math.floor(Math.random() * availableLegends.length);
-    const weaponIndex = Math.floor(Math.random() * availableWeapons.length);
+    const legendIndex = getRandomIndex(availableLegends.length);
+    const weaponIndex = getRandomIndex(availableWeapons.length);
 
     executeSpinBoth(legendIndex, weaponIndex, true);
   }
@@ -450,7 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function spinLegendOnly() {
     const availableLegends = getFilteredLegends();
-    const legendIndex = Math.floor(Math.random() * availableLegends.length);
+    const legendIndex = getRandomIndex(availableLegends.length);
     executeSpinLegend(legendIndex, true);
   }
 
@@ -474,7 +486,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function spinWeaponOnly() {
     const availableWeapons = getFilteredWeapons();
-    const weaponIndex = Math.floor(Math.random() * availableWeapons.length);
+    const weaponIndex = getRandomIndex(availableWeapons.length);
     executeSpinWeapon(weaponIndex, true);
   }
 
