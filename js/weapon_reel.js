@@ -2,7 +2,7 @@
  * Horizontal Weapon Reel Selector (WeaponReel)
  * 60 FPS smooth physics interpolation, dynamic card bounds scaling,
  * high-contrast bold fonts for OBS stream corner scaling readability.
- * Guaranteed Non-Zero Math & Bounds for OBS CEF Browser Source.
+ * Explicitly exposed to window.WeaponReel for browser global scope.
  */
 
 class WeaponReel {
@@ -348,6 +348,9 @@ class WeaponReel {
     ctx.restore();
   }
 }
+
+// Always expose to window for browser script tag compatibility
+window.WeaponReel = WeaponReel;
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = WeaponReel;

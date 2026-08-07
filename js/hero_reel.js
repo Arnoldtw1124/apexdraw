@@ -2,7 +2,7 @@
  * Horizontal Hero Character Carousel Selector Reel (HeroReel)
  * 60 FPS smooth physics interpolation, dynamic card bounds scaling,
  * high-contrast bold fonts for OBS stream corner scaling readability.
- * Guaranteed Non-Zero Math & Bounds for OBS CEF Browser Source.
+ * Explicitly exposed to window.HeroReel for browser global scope.
  */
 
 class HeroReel {
@@ -359,6 +359,9 @@ class HeroReel {
     ctx.restore();
   }
 }
+
+// Always expose to window for browser script tag compatibility
+window.HeroReel = HeroReel;
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = HeroReel;
