@@ -101,9 +101,17 @@ document.addEventListener('DOMContentLoaded', () => {
           state.twitchChannel = data.twitchChannel;
         }
 
+        // Always apply persistent queue state from server on initial load
+        // This ensures overlay shows correct player even if loaded after queue was set
         if (isInitialPoll) {
           isInitialPoll = false;
           lastSyncSeq = data.seq || 0;
+
+          // Apply persistent queue state first (most reliable)
+          if (data.queue && (data.queue.activeViewer || (data.queue.waitingQueue && data.queue.waitingQueue.length > 0))) {
+            renderQueueUI(data.queue.activeViewer, data.queue.waitingQueue, false);
+          }
+          // Then apply any last event (may override queue if it's a QUEUE_UPDATE)
           if (data.event) {
             handleSyncEvent(data.event);
           }
@@ -119,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (e) {}
     }, 200);
   }
+
 
   startOBSPollingSync();
 

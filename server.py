@@ -2,7 +2,6 @@ import http.server
 import socketserver
 import mimetypes
 import json
-import time
 
 # Explicitly add WEBP and AVIF MIME types for Python server on Windows
 mimetypes.add_type('image/webp', '.webp')
@@ -15,7 +14,12 @@ latest_state = {
     "seq": 0,
     "event": None,
     "twitchChannel": "",
-    "twitchReward": "抽隨機英雄和槍枝"
+    "twitchReward": "抽隨機英雄和槍枝",
+    # Persistent queue state - always reflects the latest queue, independent of event replay
+    "queue": {
+        "activeViewer": None,
+        "waitingQueue": []
+    }
 }
 
 class CustomHandler(http.server.SimpleHTTPRequestHandler):
@@ -52,6 +56,17 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                     latest_state["twitchChannel"] = data["twitchChannel"]
                 if "twitchReward" in data and data["twitchReward"]:
                     latest_state["twitchReward"] = data["twitchReward"]
+
+                # --- Persist queue state so overlay always gets fresh data ---
+                if data.get("type") == "QUEUE_UPDATE":
+                    latest_state["queue"]["activeViewer"] = data.get("activeViewer", None)
+                    latest_state["queue"]["waitingQueue"] = data.get("waitingQueue", [])
+                elif data.get("type") in ("QUEUE_CLEAR", "SPIN_START"):
+                    # Clear queue on explicit reset
+                    if data.get("type") == "QUEUE_CLEAR":
+                        latest_state["queue"]["activeViewer"] = None
+                        latest_state["queue"]["waitingQueue"] = []
+
             except Exception as e:
                 print("Error parsing sync payload:", e)
 
@@ -60,9 +75,14 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({"status": "ok", "seq": latest_state["seq"]}).encode('utf-8'))
             return
-        
+
         self.send_response(404)
         self.end_headers()
+
+    def log_message(self, format, *args):
+        # Suppress noisy GET /api/poll logs
+        if '/api/poll' not in args[0]:
+            super().log_message(format, *args)
 
 if __name__ == '__main__':
     socketserver.TCPServer.allow_reuse_address = True
