@@ -2,7 +2,7 @@
  * Horizontal Weapon Selection Reel Engine
  * Matches the exact AAA horizontal carousel feel of the Hero Selector.
  * 
- * Features 100% Cross-Browser Safe Rounded Rect Drawing (OBS CEF & older Chromium compatible).
+ * Features 100% Cross-Browser Safe Rounded Rect Drawing & Error-Proof Canvas Rendering.
  */
 
 function safeRoundRect(ctx, x, y, width, height, radius) {
@@ -61,18 +61,15 @@ class WeaponReel {
     setTimeout(() => this.resizeCanvas(), 300);
   }
 
-  /**
-   * Targeted image preloading for weapon images
-   */
   preloadImages(forceReload = false) {
-    if (!this.items) return;
+    if (!this.items || !Array.isArray(this.items)) return;
 
     if (forceReload) {
       this.imageCache = {};
     }
 
     this.items.forEach(item => {
-      if (!item.id) return;
+      if (!item || !item.id) return;
 
       const key = item.id;
       if (!forceReload && this.imageCache[key] && this.imageCache[key] instanceof Image) {
@@ -237,7 +234,7 @@ class WeaponReel {
 
     ctx.clearRect(0, 0, width, height);
 
-    if (!this.items || this.items.length === 0) {
+    if (!this.items || !Array.isArray(this.items) || this.items.length === 0) {
       ctx.fillStyle = '#999';
       ctx.font = `${16 * dpr}px sans-serif`;
       ctx.textAlign = 'center';
@@ -255,19 +252,25 @@ class WeaponReel {
     for (let idx = minCardIdx; idx <= maxCardIdx; idx++) {
       const itemIndex = ((idx % this.items.length) + this.items.length) % this.items.length;
       const item = this.items[itemIndex];
+      if (!item) continue;
 
       const cardLeft = idx * step - this.scrollX;
       const cardTop = (height - cardH) / 2;
 
       const isWinner = (this.winnerIndex === itemIndex);
 
-      this.drawWeaponCard(ctx, item, cardLeft, cardTop, cardW, cardH, isWinner, dpr);
+      try {
+        this.drawWeaponCard(ctx, item, cardLeft, cardTop, cardW, cardH, isWinner, dpr);
+      } catch(e) {
+        console.error('Error drawing weapon card:', e);
+      }
     }
 
     this.drawCenterSelectorFrame(ctx, width, height, dpr);
   }
 
   drawWeaponCard(ctx, item, x, y, w, h, isWinner, dpr) {
+    if (!item) return;
     ctx.save();
 
     if (isWinner) {
