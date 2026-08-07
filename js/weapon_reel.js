@@ -330,11 +330,11 @@ class WeaponReel {
 
     ctx.save();
     ctx.fillStyle = isWinner ? '#4AF2FF' : '#FFFFFF';
-    ctx.font = `900 ${16 * dpr}px "Noto Sans TC", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-    ctx.shadowBlur = 6 * dpr;
+    ctx.shadowBlur = isWinner ? 10 * dpr : 6 * dpr;
+    ctx.font = `900 ${(isWinner ? 20 : 17) * dpr}px "Noto Sans TC", sans-serif`;
     ctx.fillText(item.name, x + w / 2, y + h - 5 * dpr);
     ctx.restore();
 
