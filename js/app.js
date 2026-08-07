@@ -5,9 +5,11 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Check URL params for OBS overlay mode
+  // Check URL params for OBS overlay mode & channel parameter
   const urlParams = new URLSearchParams(window.location.search);
   const isOverlayMode = urlParams.get('mode') === 'overlay';
+  const urlChannel = urlParams.get('channel') || urlParams.get('twitch');
+  const urlReward = urlParams.get('reward');
 
   if (isOverlayMode) {
     document.body.classList.add('overlay-mode');
@@ -21,13 +23,17 @@ document.addEventListener('DOMContentLoaded', () => {
     soundVolume: 0.65,
     lastSelectedLegend: null,
     lastSelectedWeapon: null,
-    twitchChannel: '',
-    twitchReward: '抽隨機英雄和槍枝',
+    twitchChannel: urlChannel ? urlChannel.trim() : '',
+    twitchReward: urlReward ? urlReward.trim() : '抽隨機英雄和槍枝',
     twitchStrictPoints: true
   };
 
   // Load state from localStorage
   loadSavedState();
+
+  // URL query params override saved state if provided
+  if (urlChannel) state.twitchChannel = urlChannel.trim();
+  if (urlReward) state.twitchReward = urlReward.trim();
 
   // --- Real-Time Cross-Window Synchronization (BroadcastChannel) ---
   const syncChannel = new BroadcastChannel('apex_roulette_sync');
