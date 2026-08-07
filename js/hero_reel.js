@@ -88,8 +88,10 @@ class HeroReel {
     } else if (typeof APEX_DATA !== 'undefined' && APEX_DATA.legends) {
       this.items = [...APEX_DATA.legends];
     }
-    this.winnerIndex = -1;
-    this.lastTickCardIndex = -1;
+    if (!this.isSpinning) {
+      this.winnerIndex = -1;
+      this.lastTickCardIndex = -1;
+    }
     this.preloadImages();
     this.draw();
   }

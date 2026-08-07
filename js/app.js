@@ -60,30 +60,37 @@ document.addEventListener('DOMContentLoaded', () => {
   function handleSyncEvent(data) {
     if (!data) return;
 
+    if (data.type === 'SPIN_BOTH') {
+      executeSpinBoth(data.legendIndex, data.weaponIndex, false);
+      return;
+    } else if (data.type === 'SPIN_LEGEND') {
+      executeSpinLegend(data.legendIndex, false);
+      return;
+    } else if (data.type === 'SPIN_WEAPON') {
+      executeSpinWeapon(data.weaponIndex, false);
+      return;
+    } else if (data.type === 'SHOW_RESULT') {
+      showResultBannerDirect(data.legendName, data.weaponName);
+      return;
+    } else if (data.type === 'HIDE_RESULT') {
+      hideResultBanner();
+      return;
+    } else if (data.type === 'QUEUE_UPDATE') {
+      renderQueueUI(data.activeViewer, data.waitingQueue, false);
+      return;
+    }
+
+    // Handle filter/item list updates only when not spinning
     if (data.activeLegendIds && Array.isArray(data.activeLegendIds) && data.activeLegendIds.length > 0) {
       const valid = APEX_DATA.legends.filter(l => data.activeLegendIds.includes(l.id));
       state.activeLegends = valid.length > 0 ? valid : [...APEX_DATA.legends];
-      if (heroReel) heroReel.setItems(getFilteredLegends());
+      if (heroReel && !heroReel.isSpinning) heroReel.setItems(getFilteredLegends());
     }
 
     if (data.activeWeaponIds && Array.isArray(data.activeWeaponIds) && data.activeWeaponIds.length > 0) {
       const valid = APEX_DATA.weapons.filter(w => data.activeWeaponIds.includes(w.id));
       state.activeWeapons = valid.length > 0 ? valid : [...APEX_DATA.weapons];
-      if (weaponReel) weaponReel.setItems(getFilteredWeapons());
-    }
-
-    if (data.type === 'SPIN_BOTH') {
-      executeSpinBoth(data.legendIndex, data.weaponIndex, false);
-    } else if (data.type === 'SPIN_LEGEND') {
-      executeSpinLegend(data.legendIndex, false);
-    } else if (data.type === 'SPIN_WEAPON') {
-      executeSpinWeapon(data.weaponIndex, false);
-    } else if (data.type === 'SHOW_RESULT') {
-      showResultBannerDirect(data.legendName, data.weaponName);
-    } else if (data.type === 'HIDE_RESULT') {
-      hideResultBanner();
-    } else if (data.type === 'QUEUE_UPDATE') {
-      renderQueueUI(data.activeViewer, data.waitingQueue, false);
+      if (weaponReel && !weaponReel.isSpinning) weaponReel.setItems(getFilteredWeapons());
     }
   }
 
