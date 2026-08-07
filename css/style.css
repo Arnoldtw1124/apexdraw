@@ -17,8 +17,8 @@
   --text-sub: #9ca3af;
   --accent-cyan: #4af2ff;
   --accent-gold: #ffd44a;
-  --radius-lg: 12px;
-  --radius-md: 8px;
+  --radius-lg: 14px;
+  --radius-md: 10px;
   --shadow-glow: 0 0 20px rgba(255, 70, 85, 0.4);
 }
 
@@ -41,7 +41,8 @@ body {
 }
 
 /* ==========================================================================
-   OBS Stream Overlay Mode (Ultra-Compact Corner HUD Widget)
+   OBS Stream Overlay Mode: Pure 3-Component Layout (Hero Reel + Gun Reel + Queue)
+   Hides ALL headers, buttons, banners, and config tabs!
    ========================================================================== */
 
 body.overlay-mode {
@@ -52,7 +53,8 @@ body.overlay-mode {
 body.overlay-mode .app-header,
 body.overlay-mode .control-dock-toggle,
 body.overlay-mode .sidebar-panel,
-body.overlay-mode .spin-action-bar {
+body.overlay-mode .spin-action-bar,
+body.overlay-mode .result-banner {
   display: none !important;
 }
 
@@ -63,78 +65,77 @@ body.overlay-mode .app-container {
 }
 
 body.overlay-mode .main-content {
-  padding: 6px;
-  gap: 8px;
+  padding: 8px;
+  gap: 12px;
   height: 100vh;
   background: transparent;
 }
 
 body.overlay-mode .wheels-section {
   padding: 0;
-  gap: 6px;
+  gap: 10px;
   background: transparent;
+  justify-content: center;
 }
 
 body.overlay-mode .wheels-container {
-  gap: 6px;
+  gap: 10px;
+  height: 100%;
+  justify-content: space-evenly;
 }
 
 body.overlay-mode .hero-reel-card {
-  background: rgba(15, 17, 24, 0.88);
-  border: 1px solid rgba(255, 70, 85, 0.4);
-  border-radius: var(--radius-md);
-  padding: 4px 8px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+  background: rgba(15, 17, 24, 0.9);
+  border: 1.5px solid rgba(255, 70, 85, 0.5);
+  border-radius: var(--radius-lg);
+  padding: 8px 12px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.6);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 body.overlay-mode .hero-reel-wrapper {
-  height: 135px;
+  height: 230px;
 }
 
 body.overlay-mode .overlay-queue-panel {
   display: flex !important;
-  width: 190px;
+  width: 250px;
   background: rgba(15, 17, 24, 0.92);
-  border: 1px solid rgba(255, 70, 85, 0.4);
-  border-radius: var(--radius-md);
-  padding: 8px;
-  gap: 6px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+  border: 1.5px solid rgba(255, 70, 85, 0.5);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  gap: 10px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.6);
+  height: 100%;
 }
 
 body.overlay-mode .overlay-queue-title {
-  font-size: 0.85rem;
-  padding-bottom: 4px;
+  font-size: 1.05rem;
+  padding-bottom: 6px;
 }
 
 body.overlay-mode .overlay-active-card {
-  padding: 6px 8px;
+  padding: 10px 12px;
 }
 
 body.overlay-mode .active-badge-tag {
-  font-size: 0.68rem;
+  font-size: 0.75rem;
 }
 
 body.overlay-mode .overlay-active-name {
-  font-size: 0.9rem;
+  font-size: 1.05rem;
 }
 
 body.overlay-mode .overlay-waitlist-header {
-  font-size: 0.72rem;
+  font-size: 0.8rem;
 }
 
 body.overlay-mode .overlay-wait-row {
-  padding: 4px 6px;
-  font-size: 0.78rem;
-}
-
-body.overlay-mode .result-banner {
-  padding: 6px 12px;
-  border-radius: var(--radius-md);
-}
-
-body.overlay-mode .result-combination {
-  font-size: 1.1rem;
+  padding: 6px 10px;
+  font-size: 0.85rem;
 }
 
 /* Control Dock Mode (Streamer View): Hide Stream Overlay Panel */
