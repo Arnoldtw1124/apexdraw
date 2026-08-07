@@ -2,6 +2,7 @@
  * Horizontal Hero Character Reel Engine
  * Renders a horizontal character selection carousel with image cards,
  * smooth scrolling physics, tick audio triggers, and center target alignment.
+ * Responsive resize for 800x600 OBS viewports.
  */
 
 if (typeof window.safeRoundRect !== 'function') {
@@ -17,7 +18,7 @@ if (typeof window.safeRoundRect !== 'function') {
       ctx.arcTo(x + width, y, x + width, y + r, r);
       ctx.lineTo(x + width, y + height - r);
       ctx.arcTo(x + width, y + height, x + width - r, y + height, r);
-      ctx.lineTo(x + r, y + height);
+      ctx.lineTo(x + r, y);
       ctx.arcTo(x, y + height, x, y + height - r, r);
       ctx.lineTo(x, y + r);
       ctx.arcTo(x, y, x + r, y, r);
@@ -40,11 +41,10 @@ class HeroReel {
     this.onSpinEnd = options.onSpinEnd || null;
     this.onTick = options.onTick || null;
 
-    // Optimized Card dimensions
-    this.cardWidth = 155;
-    this.cardHeight = 210;
-    this.cardGap = 18;
-    this.totalCardStep = this.cardWidth + this.cardGap;
+    // Default Card dimensions (Dynamically calculated in resizeCanvas)
+    this.cardWidth = 110;
+    this.cardHeight = 145;
+    this.totalCardStep = 122;
 
     // Scroll state
     this.scrollX = 0;
@@ -133,13 +133,19 @@ class HeroReel {
     if (!width || width < 200) {
       width = parent.parentElement ? (parent.parentElement.clientWidth || 800) : 800;
     }
-    const height = 260;
+    let height = parent.clientHeight || parent.offsetHeight || 155;
+    if (height < 100) height = 155;
+
     const dpr = window.devicePixelRatio || 1;
 
     this.canvas.width = width * dpr;
     this.canvas.height = height * dpr;
     this.canvas.style.width = `${width}px`;
     this.canvas.style.height = `${height}px`;
+
+    this.cardHeight = Math.min(140, height * 0.76);
+    this.cardWidth = this.cardHeight * 0.72;
+    this.totalCardStep = this.cardWidth + 12;
 
     this.centerX = (width * dpr) / 2;
     this.centerY = (height * dpr) / 2;
@@ -237,7 +243,7 @@ class HeroReel {
 
     if (!this.items || !Array.isArray(this.items) || this.items.length === 0) {
       ctx.fillStyle = '#999';
-      ctx.font = `${16 * dpr}px sans-serif`;
+      ctx.font = `${14 * dpr}px sans-serif`;
       ctx.textAlign = 'center';
       ctx.fillText('無選擇英雄', width / 2, height / 2);
       return;
@@ -276,37 +282,36 @@ class HeroReel {
 
     if (isWinner) {
       ctx.translate(x + w / 2, y + h / 2);
-      ctx.scale(1.08, 1.08);
+      ctx.scale(1.06, 1.06);
       ctx.translate(-(x + w / 2), -(y + h / 2));
     }
 
     // Card background
     ctx.beginPath();
-    window.safeRoundRect(ctx, x, y, w, h, 14 * dpr);
+    window.safeRoundRect(ctx, x, y, w, h, 10 * dpr);
     ctx.fillStyle = 'rgba(20, 23, 32, 0.96)';
     ctx.fill();
 
     // Card border gradient & glow
-    ctx.lineWidth = isWinner ? 4 * dpr : 2 * dpr;
+    ctx.lineWidth = isWinner ? 3.5 * dpr : 1.8 * dpr;
     ctx.strokeStyle = isWinner ? '#FFD44A' : (item.color || '#FF4655');
     if (isWinner) {
       ctx.shadowColor = '#FFD44A';
-      ctx.shadowBlur = 22 * dpr;
+      ctx.shadowBlur = 18 * dpr;
     } else {
       ctx.shadowColor = item.color || '#FF4655';
-      ctx.shadowBlur = 6 * dpr;
+      ctx.shadowBlur = 4 * dpr;
     }
     ctx.stroke();
 
     // Image container dimensions
     const imgObj = item.id ? this.imageCache[item.id] : null;
-    const destX = x + 6 * dpr;
-    const avatarY = y + 6 * dpr;
-    const targetW = w - 12 * dpr;
-    const targetH = h * 0.77;
+    const destX = x + 4 * dpr;
+    const avatarY = y + 4 * dpr;
+    const targetW = w - 8 * dpr;
+    const targetH = h * 0.74;
 
     if (imgObj && imgObj instanceof Image && imgObj.complete && imgObj.naturalWidth > 0) {
-      // Object-Fit Cover Cropping: Maintains image aspect ratio without distortion
       const imgW = imgObj.naturalWidth || imgObj.width;
       const imgH = imgObj.naturalHeight || imgObj.height;
 
@@ -318,31 +323,30 @@ class HeroReel {
 
       ctx.save();
       ctx.beginPath();
-      window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
+      window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 8 * dpr);
       ctx.clip();
 
       ctx.drawImage(imgObj, sx, sy, sw, sh, destX, avatarY, targetW, targetH);
 
-      // Inner gradient shadow overlay
-      const shadowGrad = ctx.createLinearGradient(0, avatarY + targetH - 35 * dpr, 0, avatarY + targetH);
+      const shadowGrad = ctx.createLinearGradient(0, avatarY + targetH - 25 * dpr, 0, avatarY + targetH);
       shadowGrad.addColorStop(0, 'rgba(0,0,0,0)');
       shadowGrad.addColorStop(1, 'rgba(20, 23, 32, 0.9)');
       ctx.fillStyle = shadowGrad;
-      ctx.fillRect(destX, avatarY + targetH - 35 * dpr, targetW, 35 * dpr);
+      ctx.fillRect(destX, avatarY + targetH - 25 * dpr, targetW, 25 * dpr);
 
       ctx.restore();
     } else {
       // Fallback Emblem
       ctx.save();
       ctx.beginPath();
-      window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
+      window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 8 * dpr);
       ctx.fillStyle = item.color || '#333';
       ctx.globalAlpha = 0.25;
       ctx.fill();
 
       ctx.globalAlpha = 1.0;
       ctx.fillStyle = item.color || '#FFFFFF';
-      ctx.font = `bold ${40 * dpr}px "Orbitron", sans-serif`;
+      ctx.font = `bold ${30 * dpr}px "Orbitron", sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       const initial = item.name ? item.name.charAt(0) : '?';
@@ -352,44 +356,44 @@ class HeroReel {
 
     // Hero Name Footer
     ctx.fillStyle = isWinner ? '#FFD44A' : '#FFFFFF';
-    ctx.font = `bold ${15 * dpr}px "Noto Sans TC", sans-serif`;
+    ctx.font = `bold ${12 * dpr}px "Noto Sans TC", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.shadowColor = 'rgba(0,0,0,0.9)';
     ctx.shadowBlur = 4 * dpr;
-    ctx.fillText(item.name || '', x + w / 2, y + h - 18 * dpr);
+    ctx.fillText(item.name || '', x + w / 2, y + h - 14 * dpr);
 
     ctx.restore();
   }
 
   drawCenterSelectorFrame(ctx, width, height, dpr) {
-    const frameW = (this.cardWidth + 12) * dpr;
-    const frameH = (this.cardHeight + 16) * dpr;
+    const frameW = (this.cardWidth + 10) * dpr;
+    const frameH = (this.cardHeight + 12) * dpr;
     const frameX = (width - frameW) / 2;
     const frameY = (height - frameH) / 2;
 
     ctx.save();
 
     ctx.beginPath();
-    window.safeRoundRect(ctx, frameX, frameY, frameW, frameH, 16 * dpr);
-    ctx.lineWidth = 3.5 * dpr;
+    window.safeRoundRect(ctx, frameX, frameY, frameW, frameH, 12 * dpr);
+    ctx.lineWidth = 3 * dpr;
     ctx.strokeStyle = '#FF4655';
     ctx.shadowColor = '#FF4655';
-    ctx.shadowBlur = 20 * dpr;
+    ctx.shadowBlur = 16 * dpr;
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.moveTo(width / 2 - 14 * dpr, frameY - 14 * dpr);
-    ctx.lineTo(width / 2 + 14 * dpr, frameY - 14 * dpr);
-    ctx.lineTo(width / 2, frameY + 4 * dpr);
+    ctx.moveTo(width / 2 - 10 * dpr, frameY - 10 * dpr);
+    ctx.lineTo(width / 2 + 10 * dpr, frameY - 10 * dpr);
+    ctx.lineTo(width / 2, frameY + 3 * dpr);
     ctx.closePath();
     ctx.fillStyle = '#FF4655';
     ctx.fill();
 
     ctx.beginPath();
-    ctx.moveTo(width / 2 - 14 * dpr, frameY + frameH + 14 * dpr);
-    ctx.lineTo(width / 2 + 14 * dpr, frameY + frameH + 14 * dpr);
-    ctx.lineTo(width / 2, frameY + frameH - 4 * dpr);
+    ctx.moveTo(width / 2 - 10 * dpr, frameY + frameH + 10 * dpr);
+    ctx.lineTo(width / 2 + 10 * dpr, frameY + frameH + 10 * dpr);
+    ctx.lineTo(width / 2, frameY + frameH - 3 * dpr);
     ctx.closePath();
     ctx.fillStyle = '#FF4655';
     ctx.fill();

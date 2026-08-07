@@ -1,31 +1,9 @@
 /**
- * Horizontal Weapon Selection Reel Engine
- * Matches the exact AAA horizontal carousel feel of the Hero Selector.
- * 
- * Features Aspect-Correct CONTAIN Fitting so full gun models (barrel to stock) are 100% visible!
+ * Horizontal Weapon Reel Engine
+ * Renders horizontal weapon carousel with image cards, smooth scrolling physics,
+ * tick audio triggers, and center target alignment.
+ * Responsive resize for 800x600 OBS viewports.
  */
-
-if (typeof window.safeRoundRect !== 'function') {
-  window.safeRoundRect = function(ctx, x, y, width, height, radius) {
-    if (typeof ctx.roundRect === 'function') {
-      ctx.roundRect(x, y, width, height, radius);
-    } else {
-      let r = typeof radius === 'number' ? radius : 8;
-      r = Math.min(r, width / 2, height / 2);
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.lineTo(x + width - r, y);
-      ctx.arcTo(x + width, y, x + width, y + r, r);
-      ctx.lineTo(x + width, y + height - r);
-      ctx.arcTo(x + width, y + height, x + width - r, y + height, r);
-      ctx.lineTo(x + r, y + height);
-      ctx.arcTo(x, y + height, x, y + height - r, r);
-      ctx.lineTo(x, y + r);
-      ctx.arcTo(x, y, x + r, y, r);
-      ctx.closePath();
-    }
-  };
-}
 
 class WeaponReel {
   constructor(canvasElement, options = {}) {
@@ -34,18 +12,17 @@ class WeaponReel {
 
     this.items = options.items || [];
     this.isSpinning = false;
-    this.duration = options.duration || 4000;
+    this.duration = options.duration || 4500;
 
     // Callbacks
     this.onSpinStart = options.onSpinStart || null;
     this.onSpinEnd = options.onSpinEnd || null;
     this.onTick = options.onTick || null;
 
-    // 3-Card Wide Layout for full weapon visibility
-    this.cardWidth = 280;
-    this.cardHeight = 210;
-    this.cardGap = 24;
-    this.totalCardStep = this.cardWidth + this.cardGap;
+    // Default Card dimensions (Dynamically calculated in resizeCanvas)
+    this.cardWidth = 110;
+    this.cardHeight = 145;
+    this.totalCardStep = 122;
 
     // Scroll state
     this.scrollX = 0;
@@ -64,7 +41,7 @@ class WeaponReel {
   }
 
   preloadImages(forceReload = false) {
-    if (!this.items || !Array.isArray(this.items)) return;
+    if (!this.items) return;
 
     if (forceReload) {
       this.imageCache = {};
@@ -79,15 +56,14 @@ class WeaponReel {
       }
 
       const fileKey = item.fileKey || item.id;
+      const slug = item.id.replace(/_/g, '-');
 
       const candidates = [
         `image/${fileKey}.webp`,
-        `image/${fileKey}.avif`,
         `image/${fileKey}.png`,
-        `image/apex-grid-tile-weapons-${fileKey}.avif`,
-        `image/apex-grid-tile-weapons-${fileKey}.webp`,
-        `images/${fileKey}.webp`,
-        `images/${fileKey}.png`
+        `image/${slug}.webp`,
+        `image/${slug}.png`,
+        `images/${fileKey}.webp`
       ];
 
       let candidateIndex = 0;
@@ -134,13 +110,19 @@ class WeaponReel {
     if (!width || width < 200) {
       width = parent.parentElement ? (parent.parentElement.clientWidth || 800) : 800;
     }
-    const height = 260;
+    let height = parent.clientHeight || parent.offsetHeight || 155;
+    if (height < 100) height = 155;
+
     const dpr = window.devicePixelRatio || 1;
 
     this.canvas.width = width * dpr;
     this.canvas.height = height * dpr;
     this.canvas.style.width = `${width}px`;
     this.canvas.style.height = `${height}px`;
+
+    this.cardHeight = Math.min(140, height * 0.76);
+    this.cardWidth = this.cardHeight * 0.72;
+    this.totalCardStep = this.cardWidth + 12;
 
     this.centerX = (width * dpr) / 2;
     this.centerY = (height * dpr) / 2;
@@ -238,7 +220,7 @@ class WeaponReel {
 
     if (!this.items || !Array.isArray(this.items) || this.items.length === 0) {
       ctx.fillStyle = '#999';
-      ctx.font = `${16 * dpr}px sans-serif`;
+      ctx.font = `${14 * dpr}px sans-serif`;
       ctx.textAlign = 'center';
       ctx.fillText('無選擇槍械', width / 2, height / 2);
       return;
@@ -263,7 +245,7 @@ class WeaponReel {
 
       try {
         this.drawWeaponCard(ctx, item, cardLeft, cardTop, cardW, cardH, isWinner, dpr);
-      } catch(e) {
+      } catch (e) {
         console.error('Error drawing weapon card:', e);
       }
     }
@@ -283,124 +265,114 @@ class WeaponReel {
 
     // Card background
     ctx.beginPath();
-    window.safeRoundRect(ctx, x, y, w, h, 14 * dpr);
+    window.safeRoundRect(ctx, x, y, w, h, 10 * dpr);
     ctx.fillStyle = 'rgba(20, 23, 32, 0.96)';
     ctx.fill();
 
-    // Weapon category accent border
-    const catData = (APEX_DATA && APEX_DATA.weaponCategories) ? (APEX_DATA.weaponCategories[item.category] || {}) : {};
-    const themeColor = item.color || catData.color || '#00BCD4';
-
-    ctx.lineWidth = isWinner ? 4 * dpr : 2 * dpr;
-    ctx.strokeStyle = isWinner ? '#FFD44A' : themeColor;
+    // Card border gradient & glow
+    ctx.lineWidth = isWinner ? 3.5 * dpr : 1.8 * dpr;
+    ctx.strokeStyle = isWinner ? '#FFD44A' : (item.color || '#4AF2FF');
     if (isWinner) {
       ctx.shadowColor = '#FFD44A';
-      ctx.shadowBlur = 22 * dpr;
+      ctx.shadowBlur = 18 * dpr;
     } else {
-      ctx.shadowColor = themeColor;
-      ctx.shadowBlur = 6 * dpr;
+      ctx.shadowColor = item.color || '#4AF2FF';
+      ctx.shadowBlur = 4 * dpr;
     }
     ctx.stroke();
 
-    // Image / Badge container
+    // Image container dimensions
     const imgObj = item.id ? this.imageCache[item.id] : null;
-    const destX = x + 8 * dpr;
-    const avatarY = y + 8 * dpr;
-    const targetW = w - 16 * dpr;
-    const targetH = h * 0.77;
+    const destX = x + 4 * dpr;
+    const avatarY = y + 4 * dpr;
+    const targetW = w - 8 * dpr;
+    const targetH = h * 0.74;
 
     if (imgObj && imgObj instanceof Image && imgObj.complete && imgObj.naturalWidth > 0) {
-      // Object-Fit Contain Mode: Fits 100% of weapon from barrel to stock without cropping
       const imgW = imgObj.naturalWidth || imgObj.width;
       const imgH = imgObj.naturalHeight || imgObj.height;
 
       const scale = Math.min(targetW / imgW, targetH / imgH);
-      const renderW = imgW * scale;
-      const renderH = imgH * scale;
-      const renderX = destX + (targetW - renderW) / 2;
-      const renderY = avatarY + (targetH - renderH) / 2;
+      const drawW = imgW * scale;
+      const drawH = imgH * scale;
+      const drawX = destX + (targetW - drawW) / 2;
+      const drawY = avatarY + (targetH - drawH) / 2;
 
       ctx.save();
       ctx.beginPath();
-      window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
+      window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 8 * dpr);
       ctx.clip();
 
-      ctx.drawImage(imgObj, 0, 0, imgW, imgH, renderX, renderY, renderW, renderH);
+      ctx.drawImage(imgObj, drawX, drawY, drawW, drawH);
 
       const shadowGrad = ctx.createLinearGradient(0, avatarY + targetH - 25 * dpr, 0, avatarY + targetH);
       shadowGrad.addColorStop(0, 'rgba(0,0,0,0)');
-      shadowGrad.addColorStop(1, 'rgba(20, 23, 32, 0.85)');
+      shadowGrad.addColorStop(1, 'rgba(20, 23, 32, 0.9)');
       ctx.fillStyle = shadowGrad;
       ctx.fillRect(destX, avatarY + targetH - 25 * dpr, targetW, 25 * dpr);
 
       ctx.restore();
     } else {
-      // Stylized Apex Weapon Badge Graphics (Fallback)
+      // Fallback Emblem
       ctx.save();
       ctx.beginPath();
-      window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
-      ctx.fillStyle = themeColor;
-      ctx.globalAlpha = 0.15;
+      window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 8 * dpr);
+      ctx.fillStyle = item.color || '#333';
+      ctx.globalAlpha = 0.25;
       ctx.fill();
 
       ctx.globalAlpha = 1.0;
-      ctx.fillStyle = themeColor;
-      ctx.font = `bold ${32 * dpr}px "Orbitron", sans-serif`;
+      ctx.fillStyle = item.color || '#FFFFFF';
+      ctx.font = `bold ${30 * dpr}px "Orbitron", sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      
-      const shortCat = (catData.name || '').split(' ')[0] || 'GUN';
-      ctx.fillText(shortCat, x + w / 2, avatarY + targetH / 2 - 10 * dpr);
-
-      ctx.fillStyle = 'rgba(255,255,255,0.7)';
-      ctx.font = `bold ${11 * dpr}px sans-serif`;
-      ctx.fillText(item.name || 'WEAPON', x + w / 2, avatarY + targetH / 2 + 18 * dpr);
-
+      const initial = item.name ? item.name.charAt(0) : '?';
+      ctx.fillText(initial, x + w / 2, avatarY + targetH / 2);
       ctx.restore();
     }
 
     // Weapon Name Footer
     ctx.fillStyle = isWinner ? '#FFD44A' : '#FFFFFF';
-    ctx.font = `bold ${15 * dpr}px "Noto Sans TC", sans-serif`;
+    ctx.font = `bold ${12 * dpr}px "Noto Sans TC", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.shadowColor = 'rgba(0,0,0,0.9)';
     ctx.shadowBlur = 4 * dpr;
-    ctx.fillText(item.name || '', x + w / 2, y + h - 18 * dpr);
+    ctx.fillText(item.name || '', x + w / 2, y + h - 14 * dpr);
 
     ctx.restore();
   }
 
   drawCenterSelectorFrame(ctx, width, height, dpr) {
-    const frameW = (this.cardWidth + 12) * dpr;
-    const frameH = (this.cardHeight + 16) * dpr;
+    const frameW = (this.cardWidth + 10) * dpr;
+    const frameH = (this.cardHeight + 12) * dpr;
     const frameX = (width - frameW) / 2;
     const frameY = (height - frameH) / 2;
 
     ctx.save();
 
     ctx.beginPath();
-    window.safeRoundRect(ctx, frameX, frameY, frameW, frameH, 16 * dpr);
-    ctx.lineWidth = 3.5 * dpr;
-    ctx.strokeStyle = '#00BCD4'; // Cyan neon accent for weapon reticle
-    ctx.shadowColor = '#00BCD4';
-    ctx.shadowBlur = 20 * dpr;
+    window.safeRoundRect(ctx, frameX, frameY, frameW, frameH, 12 * dpr);
+    ctx.lineWidth = 3 * dpr;
+    ctx.strokeStyle = '#4AF2FF';
+    ctx.shadowColor = '#4AF2FF';
+    ctx.shadowBlur = 16 * dpr;
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.moveTo(width / 2 - 14 * dpr, frameY - 14 * dpr);
-    ctx.lineTo(width / 2 + 14 * dpr, frameY - 14 * dpr);
-    ctx.lineTo(width / 2, frameY + 4 * dpr);
+    ctx.moveTo(width / 2 - 10 * dpr, frameY - 10 * dpr);
+    ctx.lineTo(width / 2 + 10 * dpr, frameY - 10 * dpr);
+    ctx.lineTo(width / 2, frameY + 3 * dpr);
     ctx.closePath();
-    ctx.fillStyle = '#00BCD4';
+    ctx.fillStyle = '#4AF2FF';
     ctx.fill();
 
     ctx.beginPath();
-    ctx.moveTo(width / 2 - 14 * dpr, frameY + frameH + 14 * dpr);
-    ctx.lineTo(width / 2 + 14 * dpr, frameY + frameH + 14 * dpr);
-    ctx.lineTo(width / 2, frameY + frameH - 4 * dpr);
+    ctx.moveTo(width / 2 - 10 * dpr, frameY + frameH + 10 * dpr);
+    ctx.lineTo(width / 2 + 10 * dpr, frameY + frameH + 10 * dpr);
+    ctx.lineTo(width / 2, frameY + frameH - 3 * dpr);
     ctx.closePath();
-    ctx.fillStyle = '#00BCD4';
+    ctx.fillStyle = '#4AF2FF';
     ctx.fill();
 
     ctx.restore();
