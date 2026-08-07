@@ -78,11 +78,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Server Polling Sync for OBS Isolated Browser Sources
+  // Fast Server Polling Sync for OBS Isolated Browser Sources (200ms)
   function startOBSPollingSync() {
+    let isInitialPoll = true;
+
     setInterval(async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/poll');
+        const res = await fetch('http://localhost:8000/api/poll?t=' + Date.now());
         if (!res.ok) return;
         const data = await res.json();
 
@@ -92,6 +94,16 @@ document.addEventListener('DOMContentLoaded', () => {
           if (twitchIntegration) {
             twitchIntegration.connect(state.twitchChannel);
           }
+        }
+
+        // On initial poll, record current sequence to prevent stale past spins
+        if (isInitialPoll) {
+          isInitialPoll = false;
+          lastSyncSeq = data.seq || 0;
+          if (data.event && data.event.type === 'QUEUE_UPDATE') {
+            handleSyncEvent(data.event);
+          }
+          return;
         }
 
         // Check if a new spin event sequence occurred
@@ -104,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (e) {
         // Fallback silently if server offline
       }
-    }, 300);
+    }, 200);
   }
 
   startOBSPollingSync();
