@@ -1,6 +1,6 @@
 /**
  * Apex Legends Dataset
- * Matches exact 28 weapon files present in image/ folder.
+ * Includes all 29 weapon assets.
  */
 
 const APEX_DATA = {
@@ -79,6 +79,7 @@ const APEX_DATA = {
 
     // LMG (輕機槍)
     { id: 'spitfire', fileKey: 'M600_Spitfire', name: '噴火槍', category: 'lmg', color: '#1DD1A1' },
+    { id: 'devotion', fileKey: 'Devotion_LMG', name: '專注輕機槍', category: 'lmg', color: '#10AC84' },
     { id: 'lstar', fileKey: 'L-STAR_EMG', name: 'L-STAR', category: 'lmg', color: '#2ED573' },
     { id: 'rampage', fileKey: 'Rampage_LMG', name: '狂暴', category: 'lmg', color: '#26DE81' },
 
