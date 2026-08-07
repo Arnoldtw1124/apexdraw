@@ -1,7 +1,7 @@
 /**
  * Main Application Controller for Apex Legends OBS Plugin
  * Manages Dual Horizontal Carousels (Hero Reel & Weapon Reel),
- * Audio, Hotkeys, Filters, Twitch Integration & Cross-Window Real-Time Broadcast Sync.
+ * Audio, Hotkeys, Filters, Twitch Integration & OBS Server Polling Cross-Process Sync.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -31,15 +31,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load state from localStorage
   loadSavedState();
 
-  // URL query params override saved state if provided
   if (urlChannel) state.twitchChannel = urlChannel.trim();
   if (urlReward) state.twitchReward = urlReward.trim();
 
-  // --- Real-Time Cross-Window Synchronization (BroadcastChannel) ---
+  // --- Real-Time Cross-Window & OBS Process Sync (BroadcastChannel + LocalServer Polling) ---
   const syncChannel = new BroadcastChannel('apex_roulette_sync');
+  let lastSyncSeq = 0;
 
   syncChannel.onmessage = (event) => {
-    const data = event.data;
+    handleSyncEvent(event.data);
+  };
+
+  function handleSyncEvent(data) {
     if (!data) return;
 
     if (data.type === 'SPIN_BOTH') {
@@ -53,7 +56,56 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (data.type === 'HIDE_RESULT') {
       hideResultBanner();
     }
-  };
+  }
+
+  // Server Polling Sync for OBS Isolated Browser Sources
+  function startOBSPollingSync() {
+    setInterval(async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/poll');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // Check if Twitch Channel was updated from Dock
+        if (data.twitchChannel && data.twitchChannel !== state.twitchChannel) {
+          state.twitchChannel = data.twitchChannel;
+          if (twitchIntegration) {
+            twitchIntegration.connect(state.twitchChannel);
+          }
+        }
+
+        // Check if a new spin event sequence occurred
+        if (data.seq && data.seq > lastSyncSeq) {
+          lastSyncSeq = data.seq;
+          if (data.event) {
+            handleSyncEvent(data.event);
+          }
+        }
+      } catch (e) {
+        // Fallback silently if server offline
+      }
+    }, 300);
+  }
+
+  startOBSPollingSync();
+
+  function postSyncPayload(payload) {
+    // 1. Post to BroadcastChannel
+    try { syncChannel.postMessage(payload); } catch (e) {}
+
+    // 2. Post to Local Server Sync API for OBS Browser Source
+    try {
+      fetch('http://localhost:8000/api/spin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...payload,
+          twitchChannel: state.twitchChannel,
+          twitchReward: state.twitchReward
+        })
+      }).catch(() => {});
+    } catch (e) {}
+  }
 
   // Initialize Canvas Elements
   const heroCanvas = document.getElementById('heroReelCanvas');
@@ -267,7 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
     hideResultBanner();
 
     if (isInitiator) {
-      syncChannel.postMessage({
+      postSyncPayload({
         type: 'SPIN_BOTH',
         legendIndex,
         weaponIndex
@@ -300,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hideResultBanner();
 
       if (isInitiator) {
-        syncChannel.postMessage({ type: 'SPIN_LEGEND', legendIndex });
+        postSyncPayload({ type: 'SPIN_LEGEND', legendIndex });
       }
 
       heroReel.duration = state.spinDuration;
@@ -322,7 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hideResultBanner();
 
       if (isInitiator) {
-        syncChannel.postMessage({ type: 'SPIN_WEAPON', weaponIndex });
+        postSyncPayload({ type: 'SPIN_WEAPON', weaponIndex });
       }
 
       weaponReel.duration = state.spinDuration;
@@ -344,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     showResultBannerDirect(legendName, weaponName);
 
-    syncChannel.postMessage({
+    postSyncPayload({
       type: 'SHOW_RESULT',
       legendName,
       weaponName
@@ -645,6 +697,12 @@ document.addEventListener('DOMContentLoaded', () => {
         twitchIntegration.strictPointsOnly = state.twitchStrictPoints;
         twitchIntegration.connect(state.twitchChannel);
       }
+
+      postSyncPayload({
+        type: 'CONFIG_UPDATE',
+        twitchChannel: state.twitchChannel,
+        twitchReward: state.twitchReward
+      });
 
       showSaveToast();
     });
