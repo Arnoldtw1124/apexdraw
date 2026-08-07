@@ -2,7 +2,7 @@
  * Main Application Controller for Apex Legends OBS Plugin
  * Manages Dual Horizontal Carousels (Hero Reel & Weapon Reel),
  * Audio, Hotkeys, Filters, Twitch Integration & LocalStorage persistence.
- * Cleaned: Removed all parenthetical English strings.
+ * Cleaned: Zero-Setup Twitch Out-of-the-Box Connection.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -24,25 +24,11 @@ document.addEventListener('DOMContentLoaded', () => {
     lastSelectedWeapon: null,
     twitchChannel: '',
     twitchReward: '抽隨機英雄和槍枝',
-    twitchOauth: '',
-    twitchStrictPoints: true,
-    twitchEnableCmds: false
+    twitchStrictPoints: true
   };
 
   // Load state from localStorage
   loadSavedState();
-
-  // Check URL Hash for Twitch OAuth implicit grant callback
-  if (window.location.hash && window.location.hash.includes('access_token=')) {
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const token = hashParams.get('access_token');
-    if (token) {
-      state.twitchOauth = token;
-      localStorage.setItem('apex_roulette_twitch_oauth', token);
-      window.history.replaceState(null, '', window.location.pathname);
-      showTwitchNotice('🔑 成功取得 Twitch 點數授權 Token！已啟用單擊免打字點數連線。');
-    }
-  }
 
   // Initialize Canvas Elements
   const heroCanvas = document.getElementById('heroReelCanvas');
@@ -84,9 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
     twitchIntegration = new TwitchIntegration({
       channel: state.twitchChannel,
       rewardName: state.twitchReward,
-      oauthToken: state.twitchOauth,
       strictPointsOnly: state.twitchStrictPoints,
-      enableChatCmds: state.twitchEnableCmds,
       onSpinBoth: () => spinBoth(),
       onSpinLegend: () => spinLegendOnly(),
       onSpinWeapon: () => spinWeaponOnly(),
@@ -97,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (state.twitchChannel) {
-      twitchIntegration.connect(state.twitchChannel, state.twitchOauth);
+      twitchIntegration.connect(state.twitchChannel);
     }
   }
 
@@ -183,9 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const savedVolume = localStorage.getItem('apex_roulette_volume');
       const savedTwitchCh = localStorage.getItem('apex_roulette_twitch_channel');
       const savedTwitchRw = localStorage.getItem('apex_roulette_twitch_reward');
-      const savedTwitchOa = localStorage.getItem('apex_roulette_twitch_oauth');
       const savedTwitchSt = localStorage.getItem('apex_roulette_twitch_strict');
-      const savedTwitchCmd = localStorage.getItem('apex_roulette_twitch_cmd');
 
       if (savedLegendIds) {
         const ids = JSON.parse(savedLegendIds);
@@ -212,9 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (savedTwitchCh) state.twitchChannel = savedTwitchCh;
       if (savedTwitchRw) state.twitchReward = savedTwitchRw;
-      if (savedTwitchOa) state.twitchOauth = savedTwitchOa;
       if (savedTwitchSt !== null) state.twitchStrictPoints = savedTwitchSt === 'true';
-      if (savedTwitchCmd !== null) state.twitchEnableCmds = savedTwitchCmd === 'true';
 
     } catch (e) {
       state.activeLegends = [...APEX_DATA.legends];
@@ -230,9 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('apex_roulette_volume', state.soundVolume.toString());
       localStorage.setItem('apex_roulette_twitch_channel', state.twitchChannel);
       localStorage.setItem('apex_roulette_twitch_reward', state.twitchReward);
-      localStorage.setItem('apex_roulette_twitch_oauth', state.twitchOauth);
       localStorage.setItem('apex_roulette_twitch_strict', state.twitchStrictPoints.toString());
-      localStorage.setItem('apex_roulette_twitch_cmd', state.twitchEnableCmds.toString());
     } catch (e) {}
   }
 
@@ -557,17 +535,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const durationSlider = document.getElementById('durationSlider');
   const twitchChannelInput = document.getElementById('twitchChannelInput');
   const twitchRewardInput = document.getElementById('twitchRewardInput');
-  const twitchOauthInput = document.getElementById('twitchOauthInput');
   const strictPointsOnlyCheck = document.getElementById('strictPointsOnlyCheck');
-  const enableChatCmdsCheck = document.getElementById('enableChatCmdsCheck');
   const connectTwitchBtn = document.getElementById('connectTwitchBtn');
   const testTwitchTriggerBtn = document.getElementById('testTwitchTriggerBtn');
 
   if (twitchChannelInput) twitchChannelInput.value = state.twitchChannel;
   if (twitchRewardInput) twitchRewardInput.value = state.twitchReward;
-  if (twitchOauthInput) twitchOauthInput.value = state.twitchOauth;
   if (strictPointsOnlyCheck) strictPointsOnlyCheck.checked = state.twitchStrictPoints;
-  if (enableChatCmdsCheck) enableChatCmdsCheck.checked = state.twitchEnableCmds;
 
   if (testTwitchTriggerBtn) {
     testTwitchTriggerBtn.addEventListener('click', () => {
@@ -585,16 +559,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const channel = twitchChannelInput.value.trim();
       state.twitchChannel = channel;
       state.twitchReward = twitchRewardInput.value.trim() || '抽隨機英雄和槍枝';
-      state.twitchOauth = twitchOauthInput ? twitchOauthInput.value.trim() : '';
       state.twitchStrictPoints = strictPointsOnlyCheck ? strictPointsOnlyCheck.checked : true;
-      state.twitchEnableCmds = enableChatCmdsCheck ? enableChatCmdsCheck.checked : false;
       saveState();
 
       if (twitchIntegration) {
         twitchIntegration.rewardName = state.twitchReward;
         twitchIntegration.strictPointsOnly = state.twitchStrictPoints;
-        twitchIntegration.enableChatCmds = state.twitchEnableCmds;
-        twitchIntegration.connect(state.twitchChannel, state.twitchOauth);
+        twitchIntegration.connect(state.twitchChannel);
       }
 
       showSaveToast();
@@ -609,25 +580,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (enableChatCmdsCheck) {
-    enableChatCmdsCheck.addEventListener('change', (e) => {
-      state.twitchEnableCmds = e.target.checked;
-      if (twitchIntegration) twitchIntegration.enableChatCmds = state.twitchEnableCmds;
-      saveState();
-    });
-  }
-
   if (twitchRewardInput) {
     twitchRewardInput.addEventListener('change', (e) => {
       state.twitchReward = e.target.value.trim() || '抽隨機英雄和槍枝';
       if (twitchIntegration) twitchIntegration.rewardName = state.twitchReward;
-      saveState();
-    });
-  }
-
-  if (twitchOauthInput) {
-    twitchOauthInput.addEventListener('change', (e) => {
-      state.twitchOauth = e.target.value.trim();
       saveState();
     });
   }

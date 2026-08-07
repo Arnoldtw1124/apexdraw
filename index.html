@@ -126,45 +126,33 @@
           </div>
         </div>
 
-        <!-- Tab 3: Twitch Integration -->
+        <!-- Tab 3: Zero-Setup Twitch Integration -->
         <div id="tabTwitch" class="tab-content">
           <div id="twitchStatusBadge" class="twitch-status-badge disconnected">
             Twitch 未連線
           </div>
 
           <div class="setting-group">
-            <label for="twitchChannelInput">Twitch 頻道名稱</label>
+            <label for="twitchChannelInput">Twitch 頻道名稱 (Channel ID)</label>
             <input type="text" id="twitchChannelInput" placeholder="例如: arnold1124" style="padding: 8px 12px; background: var(--apex-card); border: 1px solid var(--apex-border); color: #fff; border-radius: var(--radius-md);">
           </div>
 
           <div class="setting-group">
             <label for="twitchRewardInput">忠誠點數兌換項目名稱</label>
             <input type="text" id="twitchRewardInput" value="抽隨機英雄和槍枝" placeholder="例如: 抽隨機英雄和槍枝" style="padding: 8px 12px; background: var(--apex-card); border: 1px solid var(--apex-border); color: #fff; border-radius: var(--radius-md);">
-          </div>
-
-          <div class="setting-group" style="margin-top: 4px;">
-            <label for="twitchOauthInput">Twitch 點數授權 Token (單擊免打字必備)</label>
-            <input type="password" id="twitchOauthInput" placeholder="貼入 Access Token (如 oauth:xxx)" style="padding: 8px 12px; background: var(--apex-card); border: 1px solid var(--apex-border); color: #fff; border-radius: var(--radius-md);">
-            <a id="getOauthLinkBtn" href="https://twitchtokengenerator.com/" target="_blank" rel="noopener noreferrer" class="btn" style="padding: 8px; justify-content: center; font-size: 0.85rem; background: rgba(145, 70, 255, 0.25); border-color: #9146FF; color: #E0C3FF; text-decoration: none; margin-top: 4px;">
-              🔑 點此前往 Twitch Token 產生器 (10 秒生成)
-            </a>
+            <span style="font-size: 0.82rem; color: var(--accent-gold); line-height: 1.4; margin-top: 2px;">
+              ⚡ 免權限零設定說明：在 Twitch 後台建立此點數時，只需將「需要觀眾輸入文字」勾選開啟，即可開箱即用！
+            </span>
           </div>
 
           <div class="setting-group" style="margin-top: 8px;">
-            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--accent-gold); font-weight: 700;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--text-main); font-weight: 700;">
               <input type="checkbox" id="strictPointsOnlyCheck" checked style="width: 18px; height: 18px; accent-color: var(--apex-red);">
               <span>防刷機制：僅限真正扣除忠誠點數才觸發 (阻擋免費文字/指令)</span>
             </label>
           </div>
 
-          <div class="setting-group" style="margin-top: 4px;">
-            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; opacity: 0.8;">
-              <input type="checkbox" id="enableChatCmdsCheck" style="width: 18px; height: 18px; accent-color: var(--apex-red);">
-              <span>允許聊天室打字免費觸發 (!spin)</span>
-            </label>
-          </div>
-
-          <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
             <button id="connectTwitchBtn" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px;">
               儲存設定並連結 Twitch
             </button>
@@ -180,7 +168,7 @@
           <div style="margin-top: 10px;">
             <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-sub);">Twitch 即時訊號監控 Log</label>
             <div id="twitchLogContainer" class="twitch-log-box">
-              <div class="log-item">防刷機制已開啟：必須透過忠誠點數扣點方可觸發。</div>
+              <div class="log-item">零設定模式：輸入頻道名稱即可直接連線使用。</div>
             </div>
           </div>
         </div>
@@ -217,9 +205,9 @@
             您可將英雄/槍械圖片放置於 <code>image/</code> 資料夾中。
           </li>
           <li>
-            <strong>Twitch 忠誠點數與聊天室連動：</strong>
+            <strong>Twitch 忠誠點數連動 (Zero Setup)：</strong>
             <br>
-            點擊右側側邊欄 <code>Twitch 連動</code>，輸入您的 Twitch 頻道名稱（如 <code>arnold1124</code>）並點擊連線！觀眾兌換忠誠點數或在聊天室輸入 <code>!spin</code> 即會自動啟動輪盤！
+            點擊右側側邊欄 <code>Twitch 連動</code>，填入您的頻道名稱（如 <code>arnold1124</code>）並點擊連線！觀眾兌換忠誠點數即會自動觸發排隊抽籤！
           </li>
           <li>
             <strong>設定為 OBS 實況圖層：</strong>
