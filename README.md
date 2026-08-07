@@ -16,7 +16,7 @@
 
 ## 快速使用指南 (GitHub Pages)
 
-本外掛已網頁化，不需要下載或安裝任何 Python 環境，直接開啟 OBS 貼上網址就能用。
+本插件已網頁化，不需要下載或安裝任何 Python 環境，直接開啟 OBS 貼上網址就能用。
 
 專案網址：
 `https://arnoldtw1124.github.io/apexdraw/`
