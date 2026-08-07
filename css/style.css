@@ -41,29 +41,103 @@ body {
 }
 
 /* ==========================================================================
-   OBS Overlay Mode vs Control Dock Mode Rules
+   OBS Stream Overlay Mode (Ultra-Compact Corner HUD Widget)
    ========================================================================== */
 
-/* Overlay Mode (Stream Broadcast View on OBS Screen): Hide Settings, Show Queue List */
 body.overlay-mode {
   background: transparent !important;
+  overflow: hidden !important;
 }
 
 body.overlay-mode .app-header,
 body.overlay-mode .control-dock-toggle,
-body.overlay-mode .sidebar-panel {
+body.overlay-mode .sidebar-panel,
+body.overlay-mode .spin-action-bar {
   display: none !important;
+}
+
+body.overlay-mode .app-container {
+  height: 100vh;
+  background: transparent;
+  padding: 0;
+}
+
+body.overlay-mode .main-content {
+  padding: 6px;
+  gap: 8px;
+  height: 100vh;
+  background: transparent;
+}
+
+body.overlay-mode .wheels-section {
+  padding: 0;
+  gap: 6px;
+  background: transparent;
+}
+
+body.overlay-mode .wheels-container {
+  gap: 6px;
+}
+
+body.overlay-mode .hero-reel-card {
+  background: rgba(15, 17, 24, 0.88);
+  border: 1px solid rgba(255, 70, 85, 0.4);
+  border-radius: var(--radius-md);
+  padding: 4px 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+}
+
+body.overlay-mode .hero-reel-wrapper {
+  height: 135px;
 }
 
 body.overlay-mode .overlay-queue-panel {
   display: flex !important;
+  width: 190px;
+  background: rgba(15, 17, 24, 0.92);
+  border: 1px solid rgba(255, 70, 85, 0.4);
+  border-radius: var(--radius-md);
+  padding: 8px;
+  gap: 6px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
 }
 
-body.overlay-mode .wheels-container {
-  padding: 4px;
+body.overlay-mode .overlay-queue-title {
+  font-size: 0.85rem;
+  padding-bottom: 4px;
 }
 
-/* Control Dock Mode (Streamer View): Hide Stream Overlay Panel, Show Sidebar Settings */
+body.overlay-mode .overlay-active-card {
+  padding: 6px 8px;
+}
+
+body.overlay-mode .active-badge-tag {
+  font-size: 0.68rem;
+}
+
+body.overlay-mode .overlay-active-name {
+  font-size: 0.9rem;
+}
+
+body.overlay-mode .overlay-waitlist-header {
+  font-size: 0.72rem;
+}
+
+body.overlay-mode .overlay-wait-row {
+  padding: 4px 6px;
+  font-size: 0.78rem;
+}
+
+body.overlay-mode .result-banner {
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+}
+
+body.overlay-mode .result-combination {
+  font-size: 1.1rem;
+}
+
+/* Control Dock Mode (Streamer View): Hide Stream Overlay Panel */
 body:not(.overlay-mode) .overlay-queue-panel {
   display: none !important;
 }
@@ -208,7 +282,7 @@ body:not(.overlay-mode) .overlay-queue-panel {
   width: 100%;
 }
 
-/* --- Stream Broadcast Overlay Queue Panel (Matching #1, #2, #3, #4 in User Sketch) --- */
+/* Stream Broadcast Overlay Queue Panel */
 .overlay-queue-panel {
   width: 240px;
   background: rgba(15, 17, 24, 0.85);
