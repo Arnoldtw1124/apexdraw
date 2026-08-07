@@ -2,7 +2,7 @@
  * Main Application Controller for Apex Legends OBS Plugin
  * Manages Dual Horizontal Carousels (Hero Reel & Weapon Reel),
  * Audio, Hotkeys, Filters, Twitch Integration & LocalStorage persistence.
- * Cleaned: All emojis removed per user request.
+ * Cleaned: Removed all parenthetical English strings.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -354,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
       row.innerHTML = `
         <label>
           <input type="checkbox" data-id="${legend.id}" ${isChecked ? 'checked' : ''} />
-          <span>${legend.name} (${legend.englishName || ''})</span>
+          <span>${legend.name}</span>
         </label>
       `;
 

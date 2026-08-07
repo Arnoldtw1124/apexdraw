@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Apex Legends OBS Visual Roulette & Selector</title>
+  <title>Apex 轉盤小幫手</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -15,7 +15,7 @@
     <header class="app-header">
       <div class="brand-logo">
         <div class="apex-icon"></div>
-        <h1>APEX LEGENDS OBS ROULETTE</h1>
+        <h1>Apex 轉盤小幫手</h1>
       </div>
       <div class="header-controls">
         <button id="obsGuideBtn" class="btn">OBS 整合教學</button>
@@ -30,7 +30,7 @@
 
         <!-- Result Combination Banner -->
         <div id="resultBanner" class="result-banner">
-          <div class="result-title">英雄與槍械隨機組合</div>
+          <div class="result-title">隨機組合結果</div>
           <div id="resultCombination" class="result-combination">請點擊下方旋轉按鈕！</div>
         </div>
 
@@ -42,7 +42,7 @@
         <div class="wheels-container">
           <!-- Top: Horizontal Hero Selector Reel -->
           <div class="hero-reel-card">
-            <div class="wheel-title">英雄卡片選擇器 (HERO SELECTOR)</div>
+            <div class="wheel-title">英雄</div>
             <div class="hero-reel-wrapper">
               <canvas id="heroReelCanvas"></canvas>
             </div>
@@ -50,7 +50,7 @@
 
           <!-- Bottom: Horizontal Weapon Selector Reel -->
           <div class="hero-reel-card">
-            <div class="wheel-title">槍械卡片選擇器 (WEAPON SELECTOR)</div>
+            <div class="wheel-title">槍械</div>
             <div class="hero-reel-wrapper">
               <canvas id="weaponReelCanvas"></canvas>
             </div>
@@ -60,11 +60,11 @@
         <!-- Spin Action Bar -->
         <div class="spin-action-bar">
           <button id="spinBothBtn" class="btn btn-primary btn-large-spin">
-            一鍵連動抽英雄與槍械 (SPIN BOTH)
+            一鍵全抽
           </button>
           <div class="spin-buttons-group">
-            <button id="spinLegendBtn" class="btn">單獨抽英雄 (Spin Hero)</button>
-            <button id="spinWeaponBtn" class="btn">單獨抽槍械 (Spin Weapon)</button>
+            <button id="spinLegendBtn" class="btn">單獨抽英雄</button>
+            <button id="spinWeaponBtn" class="btn">單獨抽槍械</button>
           </div>
         </div>
       </section>
@@ -107,17 +107,17 @@
           </div>
 
           <div class="setting-group">
-            <label for="twitchChannelInput">Twitch 頻道名稱 (Channel ID)</label>
+            <label for="twitchChannelInput">Twitch 頻道名稱</label>
             <div style="display: flex; gap: 8px;">
-              <input type="text" id="twitchChannelInput" placeholder="例如: arnoldtw1124" style="flex: 1; padding: 8px 12px; background: var(--apex-card); border: 1px solid var(--apex-border); color: #fff; border-radius: var(--radius-md);">
+              <input type="text" id="twitchChannelInput" placeholder="例如: arnold1124" style="flex: 1; padding: 8px 12px; background: var(--apex-card); border: 1px solid var(--apex-border); color: #fff; border-radius: var(--radius-md);">
               <button id="connectTwitchBtn" class="btn btn-primary" style="padding: 8px 16px;">連線</button>
             </div>
           </div>
 
           <div class="setting-group">
-            <label for="twitchRewardInput">忠誠點數兌換項目名稱 (Reward Name)</label>
+            <label for="twitchRewardInput">忠誠點數兌換項目名稱</label>
             <input type="text" id="twitchRewardInput" value="抽輪盤" placeholder="例如: 抽輪盤" style="padding: 8px 12px; background: var(--apex-card); border: 1px solid var(--apex-border); color: #fff; border-radius: var(--radius-md);">
-            <span style="font-size: 0.8rem; color: var(--text-sub);">觀眾於 Twitch Live 兌換此名稱點數時自動觸發抽籤</span>
+            <span style="font-size: 0.8rem; color: var(--text-sub);">觀眾於 Twitch 兌換此名稱點數時自動觸發抽籤</span>
           </div>
 
           <div class="setting-group" style="margin-top: 10px;">
@@ -136,7 +136,7 @@
           </div>
 
           <div class="setting-group">
-            <label for="durationSlider">旋轉時間 (毫秒)</label>
+            <label for="durationSlider">旋轉時間</label>
             <input type="range" id="durationSlider" min="2000" max="8000" step="500" value="4500">
           </div>
         </div>
@@ -155,25 +155,25 @@
         <p>這款雙橫向選單可完美整合至 OBS Studio 做為實況圖層或控制面板：</p>
         <ol>
           <li>
-            <strong>自訂圖片 (Image Import)：</strong>
+            <strong>自訂圖片：</strong>
             <br>
-            您可將英雄/槍械圖片放置於 <code>image/</code> 資料夾中。英雄格式為 <code>apex-grid-tile-legends-XXX.avif</code>，槍械格式為 <code>apex-grid-tile-weapons-XXX.avif</code>。
+            您可將英雄/槍械圖片放置於 <code>image/</code> 資料夾中。
           </li>
           <li>
             <strong>Twitch 忠誠點數與聊天室連動：</strong>
             <br>
-            點擊右側側邊欄 <code>Twitch 連動</code>，輸入您的 Twitch 頻道名稱（如 <code>arnoldtw1124</code>）並點擊連線！觀眾兌換忠誠點數或在聊天室輸入 <code>!spin</code> 即會自動啟動輪盤！
+            點擊右側側邊欄 <code>Twitch 連動</code>，輸入您的 Twitch 頻道名稱（如 <code>arnold1124</code>）並點擊連線！觀眾兌換忠誠點數或在聊天室輸入 <code>!spin</code> 即會自動啟動輪盤！
           </li>
           <li>
-            <strong>設定為 OBS 實況圖層 (Overlay Mode)：</strong>
+            <strong>設定為 OBS 實況圖層：</strong>
             <br>
-            在 OBS「來源」視窗點擊 <code>+</code> &rarr; 選擇 <code>瀏覽器 (Browser)</code>。
+            在 OBS「來源」視窗點擊 <code>+</code> &rarr; 選擇 <code>瀏覽器</code>。
             勾選「本機檔案」選擇 <code>index.html</code>，網址最後加上 <code>?mode=overlay</code>（即可啟用完全透明背景圖層）。
           </li>
           <li>
-            <strong>設定為 OBS 控制面板 (Custom Dock)：</strong>
+            <strong>設定為 OBS 控制面板：</strong>
             <br>
-            在 OBS 選單點擊 <code>檢視</code> &rarr; <code>動態分頁 / Docks</code> &rarr; <code>自訂瀏覽器 Dock...</code>。
+            在 OBS 選單點擊 <code>檢視</code> &rarr; <code>動態分頁</code> &rarr; <code>自訂瀏覽器 Dock...</code>。
             Dock 名稱填寫「Apex輪盤」，網址選擇本地 <code>index.html</code> 路徑即可！
           </li>
         </ol>
