@@ -40,7 +40,11 @@ body {
   overflow-x: hidden;
 }
 
-/* OBS Overlay Mode (Transparent background) */
+/* ==========================================================================
+   OBS Overlay Mode vs Control Dock Mode Rules
+   ========================================================================== */
+
+/* Overlay Mode (Stream Broadcast View on OBS Screen): Hide Settings, Show Queue List */
 body.overlay-mode {
   background: transparent !important;
 }
@@ -51,8 +55,17 @@ body.overlay-mode .sidebar-panel {
   display: none !important;
 }
 
+body.overlay-mode .overlay-queue-panel {
+  display: flex !important;
+}
+
 body.overlay-mode .wheels-container {
-  padding: 6px;
+  padding: 4px;
+}
+
+/* Control Dock Mode (Streamer View): Hide Stream Overlay Panel, Show Sidebar Settings */
+body:not(.overlay-mode) .overlay-queue-panel {
+  display: none !important;
 }
 
 /* Main Container Layout */
@@ -195,7 +208,109 @@ body.overlay-mode .wheels-container {
   width: 100%;
 }
 
-/* Streamer Queue Control Card */
+/* --- Stream Broadcast Overlay Queue Panel (Matching #1, #2, #3, #4 in User Sketch) --- */
+.overlay-queue-panel {
+  width: 240px;
+  background: rgba(15, 17, 24, 0.85);
+  border: 1.5px solid var(--apex-border);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  height: 100%;
+}
+
+.overlay-queue-title {
+  font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--accent-gold);
+  text-align: center;
+  border-bottom: 1px solid var(--apex-border);
+  padding-bottom: 6px;
+  letter-spacing: 1px;
+}
+
+.overlay-active-card {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid #10B981;
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.active-badge-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #10B981;
+  background: rgba(16, 185, 129, 0.2);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.overlay-active-name {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 0 8px #10B981;
+}
+
+.overlay-waitlist-header {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-sub);
+  margin-top: 4px;
+}
+
+.overlay-waitlist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.overlay-wait-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  color: #ffffff;
+}
+
+.overlay-wait-row .num {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  color: var(--apex-red);
+  min-width: 22px;
+}
+
+.overlay-wait-row .name {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overlay-wait-row.empty {
+  color: var(--text-sub);
+  font-size: 0.8rem;
+  justify-content: center;
+  border-style: dashed;
+}
+
+/* Streamer Queue Control Card (Dock Mode) */
 .queue-control-card {
   width: 100%;
   background: rgba(16, 185, 129, 0.08);
@@ -447,7 +562,7 @@ body.overlay-mode .wheels-container {
   100% { box-shadow: 0 0 25px rgba(145, 70, 255, 0.8); }
 }
 
-/* Right Sidebar Editor & Controls */
+/* Right Sidebar Editor & Controls (Dock Mode Only) */
 .sidebar-panel {
   width: 290px;
   background: var(--apex-panel);

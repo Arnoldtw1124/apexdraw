@@ -3,6 +3,7 @@
  * Manages Dual Horizontal Carousels (Hero Reel & Weapon Reel),
  * Audio, Hotkeys, Filters, Twitch Integration & OBS Server Polling Cross-Process Sync.
  * Anti-Echo: Mutes Dock audio by default so only OBS Overlay Source emits sound.
+ * Stream Overlay View: Displays clean Queue Waitlist (#1, #2, #3, #4) for viewers without setting tabs.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -72,6 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
       showResultBannerDirect(data.legendName, data.weaponName);
     } else if (data.type === 'HIDE_RESULT') {
       hideResultBanner();
+    } else if (data.type === 'QUEUE_UPDATE') {
+      renderQueueUI(data.activeViewer, data.waitingQueue, false);
     }
   }
 
@@ -171,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
       onStatusChange: (statusState, message) => updateTwitchBadge(statusState, message),
       onTwitchNotice: (msg) => showTwitchNotice(msg),
       onDebugLog: (logText) => appendTwitchLog(logText),
-      onQueueUpdate: (activeViewer, waitingQueue) => renderQueueUI(activeViewer, waitingQueue)
+      onQueueUpdate: (activeViewer, waitingQueue) => renderQueueUI(activeViewer, waitingQueue, true)
     });
 
     if (state.twitchChannel) {
@@ -179,13 +182,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function renderQueueUI(activeViewer, waitingQueue) {
+  function renderQueueUI(activeViewer, waitingQueue, isInitiator = true) {
+    // 1. Render Control Dock View (Streamer Control Panel)
     const badge = document.getElementById('queueBadgeCount');
     const activeName = document.getElementById('activePlayerName');
     const waitlistContainer = document.getElementById('queueWaitlistContainer');
 
     if (badge) {
-      const count = (activeViewer ? 1 : 0) + waitingQueue.length;
+      const count = (activeViewer ? 1 : 0) + (waitingQueue ? waitingQueue.length : 0);
       badge.innerText = `佇列: ${count} 人`;
     }
 
@@ -199,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (waitlistContainer) {
       waitlistContainer.innerHTML = '';
-      if (waitingQueue.length > 0) {
+      if (waitingQueue && waitingQueue.length > 0) {
         waitingQueue.forEach((item, idx) => {
           const chip = document.createElement('span');
           chip.className = 'queue-wait-item';
@@ -207,6 +211,42 @@ document.addEventListener('DOMContentLoaded', () => {
           waitlistContainer.appendChild(chip);
         });
       }
+    }
+
+    // 2. Render Stream Broadcast Overlay View (Stream View matching #1, #2, #3, #4 in sketch)
+    const overlayActiveName = document.getElementById('overlayActiveName');
+    const overlayWaitlistContainer = document.getElementById('overlayWaitlistContainer');
+
+    if (overlayActiveName) {
+      overlayActiveName.innerText = activeViewer ? `@${activeViewer.username}` : '無 (等待中)';
+    }
+
+    if (overlayWaitlistContainer) {
+      overlayWaitlistContainer.innerHTML = '';
+      if (waitingQueue && waitingQueue.length > 0) {
+        waitingQueue.forEach((item, idx) => {
+          const row = document.createElement('div');
+          row.className = 'overlay-wait-row';
+          row.innerHTML = `
+            <span class="num">#${idx + 1}</span>
+            <span class="name">@${item.username}</span>
+          `;
+          overlayWaitlistContainer.appendChild(row);
+        });
+      } else {
+        const emptyRow = document.createElement('div');
+        emptyRow.className = 'overlay-wait-row empty';
+        emptyRow.innerText = '尚無排隊觀眾';
+        overlayWaitlistContainer.appendChild(emptyRow);
+      }
+    }
+
+    if (isInitiator) {
+      postSyncPayload({
+        type: 'QUEUE_UPDATE',
+        activeViewer,
+        waitingQueue
+      });
     }
   }
 

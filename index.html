@@ -11,7 +11,7 @@
   <canvas id="confettiCanvas"></canvas>
 
   <div class="app-container">
-    <!-- Top Application Header -->
+    <!-- Top Application Header (Hidden in Overlay Mode) -->
     <header class="app-header">
       <div class="brand-logo">
         <div class="apex-icon"></div>
@@ -22,10 +22,10 @@
       </div>
     </header>
 
-    <!-- Main Content Area: Aligned for OBS Dock & Overlay -->
+    <!-- Main Content Area -->
     <main class="main-content">
       
-      <!-- Left: Dual Horizontal Reel Section (Hero Top, Weapon Bottom, Action Bar) -->
+      <!-- Left: Dual Horizontal Reel Section (Hero Top, Weapon Bottom, Spin Actions) -->
       <section class="wheels-section">
         
         <!-- Twitch Realtime Live Notice Banner -->
@@ -70,7 +70,20 @@
 
       </section>
 
-      <!-- Right: Control & Editor Sidebar (Queue, Legends, Weapons, Twitch, Settings) -->
+      <!-- Right Panel 1: Stream Broadcast Queue Panel (Shown ONLY in Overlay Mode on Stream) -->
+      <aside class="overlay-queue-panel">
+        <div class="overlay-queue-title">排隊名單</div>
+        <div class="overlay-active-card">
+          <div class="active-badge-tag">當前玩家</div>
+          <div id="overlayActiveName" class="overlay-active-name">無 (等待中)</div>
+        </div>
+        <div class="overlay-waitlist-header">候選序列 (1, 2, 3, 4)</div>
+        <div id="overlayWaitlistContainer" class="overlay-waitlist-list">
+          <div class="overlay-wait-row empty">尚無排隊觀眾</div>
+        </div>
+      </aside>
+
+      <!-- Right Panel 2: Streamer Control & Settings Dock (Shown in Control Dock Mode) -->
       <aside class="sidebar-panel">
         <div class="tab-nav">
           <button class="tab-btn active" data-tab="tabQueue">控場</button>
@@ -94,10 +107,10 @@
             </div>
 
             <div class="queue-actions">
-              <button id="completeChallengeBtn" class="btn btn-primary" style="flex: 2; justify-content: center; background: #10B981; border-color: #10B981; font-size: 1rem; padding: 12px 10px;">
+              <button id="completeChallengeBtn" class="btn btn-primary" style="flex: 2; justify-content: center; background: #10B981; border-color: #10B981; font-size: 0.95rem; padding: 10px 8px;">
                 完成此局挑戰 (抽取下一位)
               </button>
-              <button id="clearQueueBtn" class="btn" style="flex: 1; justify-content: center; background: rgba(239, 68, 68, 0.2); border-color: #EF4444; color: #FCA5A5; font-size: 0.9rem;">
+              <button id="clearQueueBtn" class="btn" style="flex: 1; justify-content: center; background: rgba(239, 68, 68, 0.2); border-color: #EF4444; color: #FCA5A5; font-size: 0.85rem;">
                 清空佇列
               </button>
             </div>
