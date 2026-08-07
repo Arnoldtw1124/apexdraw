@@ -1,8 +1,9 @@
 /**
  * Twitch Integration Module for Apex OBS Visual Roulette
  * Multi-Protocol Listener supporting:
- * 1. Twitch IRC WebSocket (Chat Commands)
- * 2. Twitch PubSub WebSocket with OAuth Token (0-typing Single-Click Point Redemptions!)
+ * 1. Twitch PubSub WebSocket with OAuth Token (0-typing Single-Click Point Redemptions!)
+ * 2. Twitch IRC WebSocket (Chat Commands)
+ * 3. Redemption Queue & Strict Points-Only Rate Limiting Mode
  */
 
 class TwitchIntegration {
@@ -10,8 +11,8 @@ class TwitchIntegration {
     this.channel = options.channel || '';
     this.rewardName = options.rewardName || '抽隨機英雄和槍枝';
     this.oauthToken = options.oauthToken || '';
-    this.enableChatCmds = options.enableChatCmds !== false;
-    this.enableReward = options.enableReward !== false;
+    this.enableChatCmds = options.enableChatCmds === true; // Default OFF for safety
+    this.strictPointsOnly = options.strictPointsOnly !== false; // Default ON: Strictly require channel points
 
     // Callbacks
     this.onSpinBoth = options.onSpinBoth || null;
@@ -25,6 +26,10 @@ class TwitchIntegration {
     this.pubsubWs = null;
     this.isConnected = false;
     this.pingInterval = null;
+
+    // Queue system for rate-limiting
+    this.redemptionQueue = [];
+    this.isProcessingQueue = false;
   }
 
   log(msg) {
@@ -45,18 +50,15 @@ class TwitchIntegration {
 
     this.disconnect();
     this.updateStatus('connecting', `正在連線至 Twitch 頻道 #${this.channel}...`);
-    this.log(`開始建立與 #${this.channel} 的頻道與點數連線...`);
+    this.log(`開始建立與 #${this.channel} 的防刷點數連線...`);
 
     if (this.oauthToken) {
-      this.log('🔑 已檢測到 OAuth 授權 Token，將啟用 Twitch PubSub 0 打字單擊點數監聽！');
+      this.log('🔑 已啟用 OAuth Token，單擊點數防刷模式生效！');
     } else {
-      this.log('⚠️ 尚未提供 OAuth Token (若要免打字單擊即抽，建議點擊 1-Click 授權)');
+      this.log('⚠️ 未提供 OAuth Token，建議點擊【1-Click 授權】啟用免打字扣點事件');
     }
 
-    // 1. Connect Twitch IRC WebSocket
     this.connectIRC();
-
-    // 2. Connect Twitch PubSub WebSocket for 0-typing single-click redemptions
     this.connectPubSub();
   }
 
@@ -65,7 +67,7 @@ class TwitchIntegration {
       this.ircWs = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
 
       this.ircWs.onopen = () => {
-        this.log('IRC 聊天室 WebSocket 已開啟，授權頻道標頭...');
+        this.log('IRC 聊天室 WebSocket 已開啟...');
         this.ircWs.send('CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership');
         this.ircWs.send(`NICK justinfan${Math.floor(Math.random() * 80000 + 10000)}`);
         this.ircWs.send(`JOIN #${this.channel}`);
@@ -133,7 +135,7 @@ class TwitchIntegration {
       const userId = data?.data?.user?.id;
 
       if (userId) {
-        this.log(`成功取得 Twitch 頻道 ID: ${userId}，傳送 LISTEN 訊息...`);
+        this.log(`成功取得 Twitch 頻道 ID: ${userId}，訂閱點數扣點廣播...`);
 
         const topics = [
           `community-points-channel-v1.${userId}`,
@@ -151,7 +153,7 @@ class TwitchIntegration {
 
         if (this.pubsubWs && this.pubsubWs.readyState === WebSocket.OPEN) {
           this.pubsubWs.send(JSON.stringify(listenMsg));
-          this.log(`已傳送 PubSub LISTEN 指令 (Token: ${this.oauthToken ? '已帶入' : '無'})`);
+          this.log(`已傳送 PubSub LISTEN 指令 (OAuth: ${this.oauthToken ? '已帶入' : '無'})`);
         }
       } else {
         this.log(`無法從 Twitch 取得 #${this.channel} 的 ID`);
@@ -182,9 +184,9 @@ class TwitchIntegration {
 
       if (msg.type === 'RESPONSE') {
         if (msg.error) {
-          this.log(`⚠️ PubSub 回應錯誤: ${msg.error} (可能需要 OAuth Token 授權)`);
+          this.log(`⚠️ PubSub 回應錯誤: ${msg.error} (防刷單擊點數需要 1-Click OAuth 授權)`);
         } else {
-          this.log(`🟢 PubSub 訂閱成功！已準備接收 0 打字單擊點數事件！`);
+          this.log(`🟢 PubSub 防刷點數頻道監聽成功！點擊扣點方可觸發！`);
         }
         return;
       }
@@ -193,26 +195,21 @@ class TwitchIntegration {
         const payload = JSON.parse(msg.data.message || '{}');
         const eventType = payload.type || '';
 
-        this.log(`PubSub 收到點數訊息: ${eventType}`);
-
         if (eventType === 'reward-redeemed' || eventType === 'custom-reward-created') {
           const redemption = payload.data?.redemption;
           const rewardTitle = redemption?.reward?.title || '';
           const userName = redemption?.user?.display_name || redemption?.user?.login || '觀眾';
 
-          this.log(`🎉 [PubSub 免打字點擊] 收到點數兌換: "${rewardTitle}" 來自 @${userName}`);
+          this.log(`🎉 [PubSub 驗證扣點] 觀眾 @${userName} 成功兌換點數: "${rewardTitle}"`);
 
           const cleanTarget = this.rewardName ? this.rewardName.toLowerCase().trim() : '';
           const cleanTitle = rewardTitle.toLowerCase().trim();
 
           if (!cleanTarget || cleanTitle.includes(cleanTarget) || cleanTarget.includes(cleanTitle)) {
-            this.log(`🎯 PubSub 匹配成功！名稱吻合: "${rewardTitle}"`);
-            if (this.onTwitchNotice) {
-              this.onTwitchNotice(`觀眾 @${userName} 兌換了忠誠點數【${rewardTitle}】！`);
-            }
-            if (this.onSpinBoth) this.onSpinBoth();
+            this.log(`🎯 點數名稱匹配成功！加入抽籤排隊隊列...`);
+            this.enqueueRedemption(userName, rewardTitle);
           } else {
-            this.log(`ℹ️ PubSub 忽略未設定的點數項目: "${rewardTitle}" (目前設定: "${this.rewardName}")`);
+            this.log(`ℹ️ PubSub 忽略未設定的點數項目: "${rewardTitle}" (設定項目: "${this.rewardName}")`);
           }
         }
       }
@@ -239,7 +236,7 @@ class TwitchIntegration {
         this.updateStatus('connected', `已成功連線至 Twitch 頻道: #${this.channel}`);
         this.log(`已成功加入頻道 #${this.channel}`);
         if (this.onTwitchNotice) {
-          this.onTwitchNotice(`成功連結 Twitch 頻道 #${this.channel} 的忠誠點數與指令！`);
+          this.onTwitchNotice(`成功連結 Twitch 頻道 #${this.channel} 的忠誠點數！`);
         }
         return;
       }
@@ -276,62 +273,69 @@ class TwitchIntegration {
         messageContent = rawLine.substring(msgIndex + ` PRIVMSG #${this.channel} :`.length).trim();
       }
 
-      this.log(`聊天室 [@${username}]: "${messageContent}" (msg-id: ${tags['msg-id'] || '無'})`);
-
-      // Detect IRC tags
+      // Check if real custom reward tag is attached to this IRC message
       const customRewardId = tags['custom-reward-id'];
-      const msgId = tags['msg-id'];
+      const isVerifiedRewardTag = Boolean(customRewardId) || rawLine.includes('custom-reward-id=');
 
-      const isCustomReward = Boolean(customRewardId) || rawLine.includes('custom-reward-id=');
-      const isHighlightedMsg = msgId === 'highlighted-message';
+      // STRICT MODE: If strictPointsOnly is enabled, ignore free chat text!
+      if (this.strictPointsOnly && !isVerifiedRewardTag) {
+        // Free chat text is blocked in strict mode
+        return;
+      }
 
       const cleanContent = messageContent.toLowerCase().trim();
       const cleanTargetReward = this.rewardName ? this.rewardName.toLowerCase().trim() : '';
 
-      const isConfiguredAsHighlight = cleanTargetReward.includes('醒目') || cleanTargetReward.includes('highlight');
-
-      let isMatched = false;
-
-      if (isConfiguredAsHighlight && isHighlightedMsg) {
-        isMatched = true;
-      } else if (cleanTargetReward && (cleanContent.includes(cleanTargetReward) || cleanContent === `!${cleanTargetReward}`)) {
-        isMatched = true;
-      } else if (isCustomReward) {
-        if (!cleanTargetReward || cleanContent.includes(cleanTargetReward)) {
-          isMatched = true;
-        }
-      }
-
-      if (isMatched) {
-        this.log(`🎯 IRC 標籤匹配成功！來自 @${username} (匹配項目: ${this.rewardName})`);
-        if (this.onTwitchNotice) {
-          this.onTwitchNotice(`觀眾 @${username} 兌換了忠誠點數【${this.rewardName}】！`);
-        }
-        if (this.onSpinBoth) this.onSpinBoth();
+      if (isVerifiedRewardTag && cleanTargetReward && (cleanContent.includes(cleanTargetReward) || !cleanContent)) {
+        this.log(`🎯 [IRC 帶標籤扣點驗證] 來自 @${username}`);
+        this.enqueueRedemption(username, this.rewardName);
         return;
       }
 
-      // Detect chat commands (!spin, !hero, !weapon)
-      if (this.enableChatCmds) {
+      // Chat Commands (Only if explicitly enabled by streamer)
+      if (this.enableChatCmds && !this.strictPointsOnly) {
         const cmd = messageContent.toLowerCase();
 
         if (cmd === '!spin' || cmd === '!apex' || cmd === '!抽' || cmd === '!spinboth') {
           this.log(`🎮 觸發聊天室指令 !spin 來自 @${username}`);
-          if (this.onTwitchNotice) this.onTwitchNotice(`觀眾 @${username} 觸發了指令 !spin`);
-          if (this.onSpinBoth) this.onSpinBoth();
+          this.enqueueRedemption(username, '!spin');
         } else if (cmd === '!spinhero' || cmd === '!hero' || cmd === '!抽英雄') {
           this.log(`⚡ 觸發聊天室指令 !spinhero 來自 @${username}`);
-          if (this.onTwitchNotice) this.onTwitchNotice(`觀眾 @${username} 觸發了指令 !spinhero`);
           if (this.onSpinLegend) this.onSpinLegend();
         } else if (cmd === '!spinweapon' || cmd === '!weapon' || cmd === '!抽槍械') {
           this.log(`⚔️ 觸發聊天室指令 !spinweapon 來自 @${username}`);
-          if (this.onTwitchNotice) this.onTwitchNotice(`觀眾 @${username} 觸發了指令 !spinweapon`);
           if (this.onSpinWeapon) this.onSpinWeapon();
         }
       }
     } catch (e) {
       console.error('Error parsing Twitch IRC message:', e);
     }
+  }
+
+  enqueueRedemption(username, rewardName) {
+    this.redemptionQueue.push({ username, rewardName });
+    this.processQueue();
+  }
+
+  async processQueue() {
+    if (this.isProcessingQueue || this.redemptionQueue.length === 0) return;
+
+    this.isProcessingQueue = true;
+    const current = this.redemptionQueue.shift();
+
+    if (this.onTwitchNotice) {
+      this.onTwitchNotice(`觀眾 @${current.username} 兌換了忠誠點數【${current.rewardName}】！`);
+    }
+
+    if (this.onSpinBoth) {
+      this.onSpinBoth();
+    }
+
+    // Wait for spin animation duration (5.5 seconds) before processing next queued redemption
+    setTimeout(() => {
+      this.isProcessingQueue = false;
+      this.processQueue();
+    }, 5500);
   }
 
   updateStatus(state, message) {

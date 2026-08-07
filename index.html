@@ -124,10 +124,17 @@
             </a>
           </div>
 
-          <div class="setting-group" style="margin-top: 6px;">
-            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-              <input type="checkbox" id="enableChatCmdsCheck" checked style="width: 18px; height: 18px; accent-color: var(--apex-red);">
-              <span>開啟聊天室指令 (!spin, !hero, !weapon)</span>
+          <div class="setting-group" style="margin-top: 8px;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--accent-gold); font-weight: 700;">
+              <input type="checkbox" id="strictPointsOnlyCheck" checked style="width: 18px; height: 18px; accent-color: var(--apex-red);">
+              <span>防刷機制：僅限真正扣除忠誠點數才觸發 (阻擋免費文字/指令)</span>
+            </label>
+          </div>
+
+          <div class="setting-group" style="margin-top: 4px;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; opacity: 0.8;">
+              <input type="checkbox" id="enableChatCmdsCheck" style="width: 18px; height: 18px; accent-color: var(--apex-red);">
+              <span>允許聊天室打字免費觸發 (!spin)</span>
             </label>
           </div>
 
@@ -147,7 +154,7 @@
           <div style="margin-top: 10px;">
             <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-sub);">Twitch 即時訊號監控 Log</label>
             <div id="twitchLogContainer" class="twitch-log-box">
-              <div class="log-item">系統初始化完畢，等待連結 Twitch 頻道...</div>
+              <div class="log-item">防刷機制已開啟：必須透過忠誠點數扣點方可觸發。</div>
             </div>
           </div>
         </div>
