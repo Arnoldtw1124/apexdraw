@@ -265,16 +265,15 @@ class HeroReel {
     ctx.fillStyle = 'rgba(20, 23, 32, 0.96)';
     ctx.fill();
 
-    ctx.lineWidth = isWinner ? 4 * dpr : 2 * dpr;
-    ctx.strokeStyle = isWinner ? '#FFD44A' : (item.color || '#FF4655');
+    // Only draw border/glow on the winner card
     if (isWinner) {
+      ctx.lineWidth = 4 * dpr;
+      ctx.strokeStyle = '#FFD44A';
       ctx.shadowColor = '#FFD44A';
       ctx.shadowBlur = 20 * dpr;
-    } else {
-      ctx.shadowColor = item.color || '#FF4655';
-      ctx.shadowBlur = 5 * dpr;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
     }
-    ctx.stroke();
 
     const imgObj = item.id ? this.imageCache[item.id] : null;
     const destX = x + 4 * dpr;
