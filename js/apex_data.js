@@ -49,7 +49,7 @@ const APEX_DATA = {
     { id: 'caustic', fileKey: 'Caustic', name: '腐蝕', englishName: 'Caustic', class: 'controller', color: '#8B5CF6' },
     { id: 'wattson', fileKey: 'Wattson', name: '華森', englishName: 'Wattson', class: 'controller', color: '#7C3AED' },
     { id: 'rampart', fileKey: 'Rampart', name: '蕾帕特', englishName: 'Rampart', class: 'controller', color: '#6D28D9' },
-    { id: 'catalyst', fileKey: 'Catalyst', name: '催化劑', englishName: 'Catalyst', class: 'controller', color: '#5B21B6' }
+    { id: 'catalyst', fileKey: 'Catalyst', name: '催化姬', englishName: 'Catalyst', class: 'controller', color: '#7C3AED' }
   ],
 
   weaponCategories: {
