@@ -1,9 +1,6 @@
 /**
  * Twitch Integration Module for Apex OBS Visual Roulette
- * Multi-Protocol Listener supporting:
- * 1. Twitch PubSub WebSocket with OAuth Token (0-typing Single-Click Point Redemptions!)
- * 2. Twitch IRC WebSocket (Chat Commands)
- * 3. Redemption Queue & Strict Points-Only Rate Limiting Mode
+ * Streamer Queue Controller & Manual Next Challenge Manager
  */
 
 class TwitchIntegration {
@@ -11,8 +8,8 @@ class TwitchIntegration {
     this.channel = options.channel || '';
     this.rewardName = options.rewardName || '抽隨機英雄和槍枝';
     this.oauthToken = options.oauthToken || '';
-    this.enableChatCmds = options.enableChatCmds === true; // Default OFF for safety
-    this.strictPointsOnly = options.strictPointsOnly !== false; // Default ON: Strictly require channel points
+    this.enableChatCmds = options.enableChatCmds === true;
+    this.strictPointsOnly = options.strictPointsOnly !== false;
 
     // Callbacks
     this.onSpinBoth = options.onSpinBoth || null;
@@ -21,15 +18,17 @@ class TwitchIntegration {
     this.onStatusChange = options.onStatusChange || null;
     this.onTwitchNotice = options.onTwitchNotice || null;
     this.onDebugLog = options.onDebugLog || null;
+    this.onQueueUpdate = options.onQueueUpdate || null;
 
     this.ircWs = null;
     this.pubsubWs = null;
     this.isConnected = false;
     this.pingInterval = null;
 
-    // Queue system for rate-limiting
+    // Queue system for streamer manual control
     this.redemptionQueue = [];
-    this.isProcessingQueue = false;
+    this.currentActiveViewer = null;
+    this.autoAdvance = false; // Default: Manual advance by Streamer "Done" button!
   }
 
   log(msg) {
@@ -50,13 +49,7 @@ class TwitchIntegration {
 
     this.disconnect();
     this.updateStatus('connecting', `正在連線至 Twitch 頻道 #${this.channel}...`);
-    this.log(`開始建立與 #${this.channel} 的防刷點數連線...`);
-
-    if (this.oauthToken) {
-      this.log('🔑 已啟用 OAuth Token，單擊點數防刷模式生效！');
-    } else {
-      this.log('⚠️ 未提供 OAuth Token，建議點擊【1-Click 授權】啟用免打字扣點事件');
-    }
+    this.log(`開始建立與 #${this.channel} 的排隊控場連線...`);
 
     this.connectIRC();
     this.connectPubSub();
@@ -153,7 +146,6 @@ class TwitchIntegration {
 
         if (this.pubsubWs && this.pubsubWs.readyState === WebSocket.OPEN) {
           this.pubsubWs.send(JSON.stringify(listenMsg));
-          this.log(`已傳送 PubSub LISTEN 指令 (OAuth: ${this.oauthToken ? '已帶入' : '無'})`);
         }
       } else {
         this.log(`無法從 Twitch 取得 #${this.channel} 的 ID`);
@@ -184,9 +176,9 @@ class TwitchIntegration {
 
       if (msg.type === 'RESPONSE') {
         if (msg.error) {
-          this.log(`⚠️ PubSub 回應錯誤: ${msg.error} (防刷單擊點數需要 1-Click OAuth 授權)`);
+          this.log(`⚠️ PubSub 回應錯誤: ${msg.error}`);
         } else {
-          this.log(`🟢 PubSub 防刷點數頻道監聽成功！點擊扣點方可觸發！`);
+          this.log(`🟢 PubSub 連線成功！已準備接收排隊點數事件！`);
         }
         return;
       }
@@ -200,22 +192,18 @@ class TwitchIntegration {
           const rewardTitle = redemption?.reward?.title || '';
           const userName = redemption?.user?.display_name || redemption?.user?.login || '觀眾';
 
-          this.log(`🎉 [PubSub 驗證扣點] 觀眾 @${userName} 成功兌換點數: "${rewardTitle}"`);
+          this.log(`🎉 [PubSub 驗證扣點] 觀眾 @${userName} 兌換點數: "${rewardTitle}"`);
 
           const cleanTarget = this.rewardName ? this.rewardName.toLowerCase().trim() : '';
           const cleanTitle = rewardTitle.toLowerCase().trim();
 
           if (!cleanTarget || cleanTitle.includes(cleanTarget) || cleanTarget.includes(cleanTitle)) {
-            this.log(`🎯 點數名稱匹配成功！加入抽籤排隊隊列...`);
+            this.log(`🎯 點數名稱匹配成功！加入排隊佇列...`);
             this.enqueueRedemption(userName, rewardTitle);
-          } else {
-            this.log(`ℹ️ PubSub 忽略未設定的點數項目: "${rewardTitle}" (設定項目: "${this.rewardName}")`);
           }
         }
       }
-    } catch (e) {
-      console.error('Error handling PubSub message:', e);
-    }
+    } catch (e) {}
   }
 
   handleIRCMessage(rawMessage) {
@@ -273,13 +261,10 @@ class TwitchIntegration {
         messageContent = rawLine.substring(msgIndex + ` PRIVMSG #${this.channel} :`.length).trim();
       }
 
-      // Check if real custom reward tag is attached to this IRC message
       const customRewardId = tags['custom-reward-id'];
       const isVerifiedRewardTag = Boolean(customRewardId) || rawLine.includes('custom-reward-id=');
 
-      // STRICT MODE: If strictPointsOnly is enabled, ignore free chat text!
       if (this.strictPointsOnly && !isVerifiedRewardTag) {
-        // Free chat text is blocked in strict mode
         return;
       }
 
@@ -287,24 +272,17 @@ class TwitchIntegration {
       const cleanTargetReward = this.rewardName ? this.rewardName.toLowerCase().trim() : '';
 
       if (isVerifiedRewardTag && cleanTargetReward && (cleanContent.includes(cleanTargetReward) || !cleanContent)) {
-        this.log(`🎯 [IRC 帶標籤扣點驗證] 來自 @${username}`);
+        this.log(`🎯 [IRC 扣點驗證] 來自 @${username}`);
         this.enqueueRedemption(username, this.rewardName);
         return;
       }
 
-      // Chat Commands (Only if explicitly enabled by streamer)
       if (this.enableChatCmds && !this.strictPointsOnly) {
         const cmd = messageContent.toLowerCase();
 
         if (cmd === '!spin' || cmd === '!apex' || cmd === '!抽' || cmd === '!spinboth') {
           this.log(`🎮 觸發聊天室指令 !spin 來自 @${username}`);
           this.enqueueRedemption(username, '!spin');
-        } else if (cmd === '!spinhero' || cmd === '!hero' || cmd === '!抽英雄') {
-          this.log(`⚡ 觸發聊天室指令 !spinhero 來自 @${username}`);
-          if (this.onSpinLegend) this.onSpinLegend();
-        } else if (cmd === '!spinweapon' || cmd === '!weapon' || cmd === '!抽槍械') {
-          this.log(`⚔️ 觸發聊天室指令 !spinweapon 來自 @${username}`);
-          if (this.onSpinWeapon) this.onSpinWeapon();
         }
       }
     } catch (e) {
@@ -314,28 +292,51 @@ class TwitchIntegration {
 
   enqueueRedemption(username, rewardName) {
     this.redemptionQueue.push({ username, rewardName });
-    this.processQueue();
+
+    if (!this.currentActiveViewer) {
+      this.advanceQueue();
+    } else {
+      this.notifyQueueChanged();
+    }
   }
 
-  async processQueue() {
-    if (this.isProcessingQueue || this.redemptionQueue.length === 0) return;
+  // Called when Streamer clicks "Done & Spin Next" button
+  completeCurrentChallenge() {
+    this.log(`✅ 實況主點擊完成此局，準備抽下一位...`);
+    this.currentActiveViewer = null;
+    this.advanceQueue();
+  }
 
-    this.isProcessingQueue = true;
-    const current = this.redemptionQueue.shift();
+  // Clear all pending queue items
+  clearQueue() {
+    this.redemptionQueue = [];
+    this.notifyQueueChanged();
+    this.log(`🗑️ 佇列已全數清空`);
+  }
+
+  advanceQueue() {
+    if (this.redemptionQueue.length === 0) {
+      this.currentActiveViewer = null;
+      this.notifyQueueChanged();
+      return;
+    }
+
+    this.currentActiveViewer = this.redemptionQueue.shift();
+    this.notifyQueueChanged();
 
     if (this.onTwitchNotice) {
-      this.onTwitchNotice(`觀眾 @${current.username} 兌換了忠誠點數【${current.rewardName}】！`);
+      this.onTwitchNotice(`當前玩家 @${this.currentActiveViewer.username} 正在抽籤中！`);
     }
 
     if (this.onSpinBoth) {
       this.onSpinBoth();
     }
+  }
 
-    // Wait for spin animation duration (5.5 seconds) before processing next queued redemption
-    setTimeout(() => {
-      this.isProcessingQueue = false;
-      this.processQueue();
-    }, 5500);
+  notifyQueueChanged() {
+    if (this.onQueueUpdate) {
+      this.onQueueUpdate(this.currentActiveViewer, this.redemptionQueue);
+    }
   }
 
   updateStatus(state, message) {

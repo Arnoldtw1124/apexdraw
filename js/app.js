@@ -92,11 +92,43 @@ document.addEventListener('DOMContentLoaded', () => {
       onSpinWeapon: () => spinWeaponOnly(),
       onStatusChange: (statusState, message) => updateTwitchBadge(statusState, message),
       onTwitchNotice: (msg) => showTwitchNotice(msg),
-      onDebugLog: (logText) => appendTwitchLog(logText)
+      onDebugLog: (logText) => appendTwitchLog(logText),
+      onQueueUpdate: (activeViewer, waitingQueue) => renderQueueUI(activeViewer, waitingQueue)
     });
 
     if (state.twitchChannel) {
       twitchIntegration.connect(state.twitchChannel, state.twitchOauth);
+    }
+  }
+
+  function renderQueueUI(activeViewer, waitingQueue) {
+    const badge = document.getElementById('queueBadgeCount');
+    const activeName = document.getElementById('activePlayerName');
+    const waitlistContainer = document.getElementById('queueWaitlistContainer');
+
+    if (badge) {
+      const count = (activeViewer ? 1 : 0) + waitingQueue.length;
+      badge.innerText = `佇列: ${count} 人`;
+    }
+
+    if (activeName) {
+      if (activeViewer) {
+        activeName.innerText = `@${activeViewer.username}`;
+      } else {
+        activeName.innerText = `無 (等待觀眾點數兌換)`;
+      }
+    }
+
+    if (waitlistContainer) {
+      waitlistContainer.innerHTML = '';
+      if (waitingQueue.length > 0) {
+        waitingQueue.forEach((item, idx) => {
+          const chip = document.createElement('span');
+          chip.className = 'queue-wait-item';
+          chip.innerText = `#${idx + 1} @${item.username}`;
+          waitlistContainer.appendChild(chip);
+        });
+      }
     }
   }
 
@@ -358,6 +390,26 @@ document.addEventListener('DOMContentLoaded', () => {
   if (spinLegendBtn) spinLegendBtn.addEventListener('click', spinLegendOnly);
   if (spinWeaponBtn) spinWeaponBtn.addEventListener('click', spinWeaponOnly);
 
+  // Queue Control Buttons
+  const completeChallengeBtn = document.getElementById('completeChallengeBtn');
+  const clearQueueBtn = document.getElementById('clearQueueBtn');
+
+  if (completeChallengeBtn) {
+    completeChallengeBtn.addEventListener('click', () => {
+      if (twitchIntegration) {
+        twitchIntegration.completeCurrentChallenge();
+      }
+    });
+  }
+
+  if (clearQueueBtn) {
+    clearQueueBtn.addEventListener('click', () => {
+      if (twitchIntegration) {
+        twitchIntegration.clearQueue();
+      }
+    });
+  }
+
   // Keyboard Hotkeys
   window.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
@@ -520,7 +572,11 @@ document.addEventListener('DOMContentLoaded', () => {
   if (testTwitchTriggerBtn) {
     testTwitchTriggerBtn.addEventListener('click', () => {
       showTwitchNotice(`【測試】觀眾 @TestViewer 兌換了忠誠點數【${state.twitchReward || '抽隨機英雄和槍枝'}】！`);
-      spinBoth();
+      if (twitchIntegration) {
+        twitchIntegration.enqueueRedemption('TestViewer', state.twitchReward || '抽隨機英雄和槍枝');
+      } else {
+        spinBoth();
+      }
     });
   }
 

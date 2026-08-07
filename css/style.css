@@ -181,6 +181,83 @@ body.overlay-mode .wheels-container {
   width: 100%;
 }
 
+/* Streamer Queue Control Card */
+.queue-control-card {
+  width: 100%;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1.5px solid #10B981;
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+}
+
+.queue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.queue-title {
+  font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #10B981;
+}
+
+.queue-badge {
+  background: #10B981;
+  color: #000;
+  font-weight: 900;
+  font-size: 0.8rem;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.queue-active-player {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.active-label {
+  font-size: 0.85rem;
+  color: var(--text-sub);
+}
+
+.active-name {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 0 8px #10B981;
+}
+
+.queue-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.queue-waitlist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.8rem;
+}
+
+.queue-wait-item {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 4px 10px;
+  border-radius: 12px;
+  color: var(--text-sub);
+}
+
 /* Hero Horizontal Reel Container Card */
 .hero-reel-card {
   width: 100%;

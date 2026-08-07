@@ -39,6 +39,32 @@
           <span id="twitchNoticeText">Twitch 實況動態訊息</span>
         </div>
 
+        <!-- Streamer Queue Control Card -->
+        <div id="queueControlCard" class="queue-control-card">
+          <div class="queue-header">
+            <span class="queue-title">實況主佇列控場</span>
+            <span id="queueBadgeCount" class="queue-badge">佇列: 0 人</span>
+          </div>
+
+          <div class="queue-active-player">
+            <div class="active-label">當前挑戰玩家：</div>
+            <div id="activePlayerName" class="active-name">無 (等待觀眾點數兌換)</div>
+          </div>
+
+          <div class="queue-actions">
+            <button id="completeChallengeBtn" class="btn btn-primary" style="flex: 2; justify-content: center; background: #10B981; border-color: #10B981;">
+              完成此局挑戰 (抽取佇列下一位)
+            </button>
+            <button id="clearQueueBtn" class="btn" style="flex: 1; justify-content: center; background: rgba(239, 68, 68, 0.2); border-color: #EF4444; color: #FCA5A5;">
+              清空佇列
+            </button>
+          </div>
+
+          <div id="queueWaitlistContainer" class="queue-waitlist">
+            <!-- Waiting list items injected by JS -->
+          </div>
+        </div>
+
         <div class="wheels-container">
           <!-- Top: Horizontal Hero Selector Reel -->
           <div class="hero-reel-card">
