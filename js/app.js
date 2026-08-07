@@ -2,8 +2,7 @@
  * Main Application Controller for Apex Legends OBS Plugin
  * Manages Dual Horizontal Carousels (Hero Reel & Weapon Reel),
  * Audio, Hotkeys, Filters, Twitch Integration & OBS Server Polling Cross-Process Sync.
- * Anti-Duplicate: Only Dock mode listens to Twitch IRC to prevent dual random indices.
- * 100% Identical Sync on First Spin & All Subsequent Spins.
+ * Bulletproof Fallback: Never clears canvas to black; guarantees full legend/weapon list rendering.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -19,8 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Application State
   const state = {
-    activeLegends: [],
-    activeWeapons: [],
+    activeLegends: [...APEX_DATA.legends],
+    activeWeapons: [...APEX_DATA.weapons],
     spinDuration: 4500,
     soundVolume: 0.65,
     lastSelectedLegend: null,
@@ -63,13 +62,15 @@ document.addEventListener('DOMContentLoaded', () => {
   function handleSyncEvent(data) {
     if (!data) return;
 
-    if (data.activeLegendIds && Array.isArray(data.activeLegendIds)) {
-      state.activeLegends = APEX_DATA.legends.filter(l => data.activeLegendIds.includes(l.id));
+    if (data.activeLegendIds && Array.isArray(data.activeLegendIds) && data.activeLegendIds.length > 0) {
+      const valid = APEX_DATA.legends.filter(l => data.activeLegendIds.includes(l.id));
+      state.activeLegends = valid.length > 0 ? valid : [...APEX_DATA.legends];
       if (heroReel) heroReel.setItems(getFilteredLegends());
     }
 
-    if (data.activeWeaponIds && Array.isArray(data.activeWeaponIds)) {
-      state.activeWeapons = APEX_DATA.weapons.filter(w => data.activeWeaponIds.includes(w.id));
+    if (data.activeWeaponIds && Array.isArray(data.activeWeaponIds) && data.activeWeaponIds.length > 0) {
+      const valid = APEX_DATA.weapons.filter(w => data.activeWeaponIds.includes(w.id));
+      state.activeWeapons = valid.length > 0 ? valid : [...APEX_DATA.weapons];
       if (weaponReel) weaponReel.setItems(getFilteredWeapons());
     }
 
@@ -131,8 +132,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function postSyncPayload(payload) {
     const fullPayload = {
       ...payload,
-      activeLegendIds: state.activeLegends.map(l => l.id),
-      activeWeaponIds: state.activeWeapons.map(w => w.id),
+      activeLegendIds: getFilteredLegends().map(l => l.id),
+      activeWeaponIds: getFilteredWeapons().map(w => w.id),
       twitchChannel: state.twitchChannel,
       twitchReward: state.twitchReward
     };
@@ -183,6 +184,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Ensure canvases draw items immediately
+  setTimeout(() => {
+    if (heroReel) heroReel.setItems(getFilteredLegends());
+    if (weaponReel) weaponReel.setItems(getFilteredWeapons());
+  }, 100);
+
   // --- Twitch Integration Setup ---
   let twitchIntegration = null;
 
@@ -200,7 +207,6 @@ document.addEventListener('DOMContentLoaded', () => {
       onQueueUpdate: (activeViewer, waitingQueue) => renderQueueUI(activeViewer, waitingQueue, true)
     });
 
-    // Connect Twitch WebSocket ONLY if channel exists
     if (state.twitchChannel) {
       twitchIntegration.connect(state.twitchChannel);
     }
@@ -377,11 +383,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function getFilteredLegends() {
-    return state.activeLegends.length > 0 ? state.activeLegends : APEX_DATA.legends;
+    if (state.activeLegends && state.activeLegends.length > 0) {
+      return state.activeLegends;
+    }
+    return [...APEX_DATA.legends];
   }
 
   function getFilteredWeapons() {
-    return state.activeWeapons.length > 0 ? state.activeWeapons : APEX_DATA.weapons;
+    if (state.activeWeapons && state.activeWeapons.length > 0) {
+      return state.activeWeapons;
+    }
+    return [...APEX_DATA.weapons];
   }
 
   // --- Synchronized Spin Triggers ---
