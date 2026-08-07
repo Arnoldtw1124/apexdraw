@@ -2,8 +2,8 @@
  * Main Application Controller for Apex Legends OBS Plugin
  * Manages Dual Horizontal Carousels (Hero Reel & Weapon Reel),
  * Audio, Hotkeys, Filters, Twitch Integration & OBS Server Polling Cross-Process Sync.
- * DEFAULT VIEW: Pure 3-Component Stream Overlay (Hero + Weapon + Queue Waitlist, ZERO buttons/headers).
- * STREAMER DOCK VIEW: Activated via `?mode=dock` or clicking `⚙️ 控場面板` for streamer controls.
+ * Anti-Duplicate: Only Dock mode listens to Twitch IRC to prevent dual random indices.
+ * 100% Identical Sync on First Spin & All Subsequent Spins.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -63,6 +63,16 @@ document.addEventListener('DOMContentLoaded', () => {
   function handleSyncEvent(data) {
     if (!data) return;
 
+    if (data.activeLegendIds && Array.isArray(data.activeLegendIds)) {
+      state.activeLegends = APEX_DATA.legends.filter(l => data.activeLegendIds.includes(l.id));
+      if (heroReel) heroReel.setItems(getFilteredLegends());
+    }
+
+    if (data.activeWeaponIds && Array.isArray(data.activeWeaponIds)) {
+      state.activeWeapons = APEX_DATA.weapons.filter(w => data.activeWeaponIds.includes(w.id));
+      if (weaponReel) weaponReel.setItems(getFilteredWeapons());
+    }
+
     if (data.type === 'SPIN_BOTH') {
       executeSpinBoth(data.legendIndex, data.weaponIndex, false);
     } else if (data.type === 'SPIN_LEGEND') {
@@ -91,16 +101,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Check if Twitch Channel was updated from Dock
         if (data.twitchChannel && data.twitchChannel !== state.twitchChannel) {
           state.twitchChannel = data.twitchChannel;
-          if (twitchIntegration) {
-            twitchIntegration.connect(state.twitchChannel);
-          }
         }
 
         // On initial poll, record current sequence to prevent stale past spins
         if (isInitialPoll) {
           isInitialPoll = false;
           lastSyncSeq = data.seq || 0;
-          if (data.event && data.event.type === 'QUEUE_UPDATE') {
+          if (data.event) {
             handleSyncEvent(data.event);
           }
           return;
@@ -122,19 +129,23 @@ document.addEventListener('DOMContentLoaded', () => {
   startOBSPollingSync();
 
   function postSyncPayload(payload) {
+    const fullPayload = {
+      ...payload,
+      activeLegendIds: state.activeLegends.map(l => l.id),
+      activeWeaponIds: state.activeWeapons.map(w => w.id),
+      twitchChannel: state.twitchChannel,
+      twitchReward: state.twitchReward
+    };
+
     // 1. Post to BroadcastChannel
-    try { syncChannel.postMessage(payload); } catch (e) {}
+    try { syncChannel.postMessage(fullPayload); } catch (e) {}
 
     // 2. Post to Local Server Sync API for OBS Browser Source
     try {
       fetch('http://localhost:8000/api/spin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...payload,
-          twitchChannel: state.twitchChannel,
-          twitchReward: state.twitchReward
-        })
+        body: JSON.stringify(fullPayload)
       }).catch(() => {});
     } catch (e) {}
   }
@@ -189,6 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
       onQueueUpdate: (activeViewer, waitingQueue) => renderQueueUI(activeViewer, waitingQueue, true)
     });
 
+    // Connect Twitch WebSocket ONLY if channel exists
     if (state.twitchChannel) {
       twitchIntegration.connect(state.twitchChannel);
     }
@@ -673,6 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.activeLegends.length === 0) state.activeLegends = [...APEX_DATA.legends];
         saveState();
         if (heroReel) heroReel.setItems(getFilteredLegends());
+        postSyncPayload({});
       });
 
       container.appendChild(row);
@@ -708,6 +721,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.activeWeapons.length === 0) state.activeWeapons = [...APEX_DATA.weapons];
         saveState();
         if (weaponReel) weaponReel.setItems(getFilteredWeapons());
+        postSyncPayload({});
       });
 
       container.appendChild(row);
@@ -724,6 +738,7 @@ document.addEventListener('DOMContentLoaded', () => {
       saveState();
       renderLegendListEditor();
       if (heroReel) heroReel.setItems(getFilteredLegends());
+      postSyncPayload({});
     });
   }
 
@@ -733,6 +748,7 @@ document.addEventListener('DOMContentLoaded', () => {
       saveState();
       renderLegendListEditor();
       if (heroReel) heroReel.setItems(getFilteredLegends());
+      postSyncPayload({});
     });
   }
 
@@ -745,6 +761,7 @@ document.addEventListener('DOMContentLoaded', () => {
       saveState();
       renderWeaponListEditor();
       if (weaponReel) weaponReel.setItems(getFilteredWeapons());
+      postSyncPayload({});
     });
   }
 
@@ -754,6 +771,7 @@ document.addEventListener('DOMContentLoaded', () => {
       saveState();
       renderWeaponListEditor();
       if (weaponReel) weaponReel.setItems(getFilteredWeapons());
+      postSyncPayload({});
     });
   }
 
