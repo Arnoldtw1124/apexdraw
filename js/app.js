@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     activeLegends: [...APEX_DATA.legends],
     activeWeapons: [...APEX_DATA.weapons],
     spinDuration: 4500,
-    soundVolume: 0.65,
+    soundVolume: 0.20,
     lastSelectedLegend: null,
     lastSelectedWeapon: null,
     twitchChannel: urlChannel ? urlChannel.trim() : '',
@@ -361,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (savedVolume !== null) {
         state.soundVolume = parseFloat(savedVolume);
       } else {
-        state.soundVolume = 0.65;
+        state.soundVolume = 0.20;
       }
       if (window.soundEngine) window.soundEngine.setVolume(state.soundVolume);
 
@@ -373,7 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {
       state.activeLegends = [...APEX_DATA.legends];
       state.activeWeapons = [...APEX_DATA.weapons];
-      state.soundVolume = 0.65;
+      state.soundVolume = 0.20;
       state.muteDockAudio = true;
     }
   }

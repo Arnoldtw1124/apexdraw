@@ -7,7 +7,7 @@ class SoundEngine {
   constructor() {
     this.audioCtx = null;
     this.muted = false;
-    this.volume = 0.65;
+    this.volume = 0.20;
   }
 
   init() {
