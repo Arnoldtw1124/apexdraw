@@ -95,8 +95,16 @@ body {
   align-items: center;
   gap: 8px;
   height: 100%;
-  overflow: hidden;
-  justify-content: center;
+  overflow-y: auto;
+  justify-content: flex-start;
+}
+
+.wheels-section::-webkit-scrollbar {
+  width: 4px;
+}
+.wheels-section::-webkit-scrollbar-thumb {
+  background: var(--apex-red);
+  border-radius: 2px;
 }
 
 .wheels-container {
@@ -105,8 +113,6 @@ body {
   align-items: center;
   gap: 8px;
   width: 100%;
-  height: 100%;
-  justify-content: space-evenly;
 }
 
 .hero-reel-card {
@@ -121,13 +127,12 @@ body {
   justify-content: center;
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8);
-  flex: 1;
 }
 
 .hero-reel-wrapper {
   position: relative;
   width: 100%;
-  height: 230px;
+  height: 200px;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -305,7 +310,7 @@ body.dock-mode .overlay-queue-panel {
 }
 
 body.dock-mode .hero-reel-wrapper {
-  height: 160px !important;
+  height: 145px !important;
 }
 
 body.dock-mode .main-content {
