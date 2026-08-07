@@ -1,81 +1,40 @@
 /**
- * Horizontal Hero Character Reel Engine
- * Renders a horizontal character selection carousel with image cards,
- * smooth scrolling physics, tick audio triggers, and center target alignment.
- * Responsive resize for 800x600 OBS viewports.
+ * Horizontal Hero Character Carousel Selector Reel (HeroReel)
+ * 60 FPS smooth physics interpolation, dynamic card bounds scaling,
+ * high-contrast bold fonts for OBS stream corner scaling readability.
  */
 
-if (typeof window.safeRoundRect !== 'function') {
-  window.safeRoundRect = function(ctx, x, y, width, height, radius) {
-    if (typeof ctx.roundRect === 'function') {
-      ctx.roundRect(x, y, width, height, radius);
-    } else {
-      let r = typeof radius === 'number' ? radius : 8;
-      r = Math.min(r, width / 2, height / 2);
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.lineTo(x + width - r, y);
-      ctx.arcTo(x + width, y, x + width, y + r, r);
-      ctx.lineTo(x + width, y + height - r);
-      ctx.arcTo(x + width, y + height, x + width - r, y + height, r);
-      ctx.lineTo(x + r, y);
-      ctx.arcTo(x, y + height, x, y + height - r, r);
-      ctx.lineTo(x, y + r);
-      ctx.arcTo(x, y, x + r, y, r);
-      ctx.closePath();
-    }
-  };
-}
-
 class HeroReel {
-  constructor(canvasElement, options = {}) {
-    this.canvas = canvasElement;
-    this.ctx = canvasElement.getContext('2d');
-
+  constructor(canvas, options = {}) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
     this.items = options.items || [];
-    this.isSpinning = false;
-    this.duration = options.duration || 4000;
-
-    // Callbacks
-    this.onSpinStart = options.onSpinStart || null;
+    this.duration = options.duration || 4500;
     this.onSpinEnd = options.onSpinEnd || null;
-    this.onTick = options.onTick || null;
 
-    // Default Card dimensions (Dynamically calculated in resizeCanvas)
-    this.cardWidth = 110;
-    this.cardHeight = 145;
-    this.totalCardStep = 122;
+    this.cardWidth = 135;
+    this.cardHeight = 150;
+    this.cardGap = 12;
 
-    // Scroll state
-    this.scrollX = 0;
+    this.currentOffset = 0;
+    this.targetOffset = 0;
+    this.startOffset = 0;
+    this.isSpinning = false;
+    this.startTime = null;
     this.winnerIndex = -1;
     this.lastTickCardIndex = -1;
 
-    // Cache preloaded images
     this.imageCache = {};
     this.preloadImages();
 
     this.resizeCanvas();
     window.addEventListener('resize', () => this.resizeCanvas());
-
-    setTimeout(() => this.resizeCanvas(), 50);
-    setTimeout(() => this.resizeCanvas(), 300);
   }
 
-  preloadImages(forceReload = false) {
-    if (!this.items) return;
-
-    if (forceReload) {
-      this.imageCache = {};
-    }
-
+  preloadImages() {
     this.items.forEach(item => {
-      if (!item || !item.id) return;
-
       const key = item.id;
-      if (!forceReload && this.imageCache[key] && this.imageCache[key] instanceof Image) {
-        return;
-      }
+      if (!key || this.imageCache[key]) return;
 
       const fileKey = item.fileKey || item.id;
       const slug = item.id.replace(/_/g, '-');
@@ -133,150 +92,131 @@ class HeroReel {
     if (!width || width < 200) {
       width = parent.parentElement ? (parent.parentElement.clientWidth || 800) : 800;
     }
-    let height = parent.clientHeight || parent.offsetHeight || 155;
-    if (height < 100) height = 155;
+    let height = parent.clientHeight || parent.offsetHeight || 180;
+    if (height < 100) height = 180;
 
     const dpr = window.devicePixelRatio || 1;
 
     this.canvas.width = width * dpr;
     this.canvas.height = height * dpr;
-    this.canvas.style.width = `${width}px`;
-    this.canvas.style.height = `${height}px`;
+    this.canvas.style.width = width + 'px';
+    this.canvas.style.height = height + 'px';
 
-    this.cardHeight = Math.min(140, height * 0.76);
-    this.cardWidth = this.cardHeight * 0.72;
-    this.totalCardStep = this.cardWidth + 12;
-
-    this.centerX = (width * dpr) / 2;
-    this.centerY = (height * dpr) / 2;
-    this.dpr = dpr;
+    this.cardHeight = Math.min(185, height * 0.88);
+    this.cardWidth = Math.round(this.cardHeight * 0.88);
 
     this.draw();
   }
 
-  spin(targetIndex = null) {
-    if (this.isSpinning || !this.items || this.items.length === 0) return;
+  spin(targetItemIndex = null) {
+    if (this.isSpinning || this.items.length === 0) return;
 
-    this.isSpinning = true;
-    this.winnerIndex = -1;
-
-    if (targetIndex === null || targetIndex < 0 || targetIndex >= this.items.length) {
-      targetIndex = Math.floor(Math.random() * this.items.length);
+    if (targetItemIndex === null || targetItemIndex < 0 || targetItemIndex >= this.items.length) {
+      targetItemIndex = Math.floor(Math.random() * this.items.length);
     }
-    this.targetWinnerIndex = targetIndex;
+    this.winnerIndex = targetItemIndex;
 
-    const numItems = this.items.length;
-    const step = this.totalCardStep * this.dpr;
+    const totalCards = this.items.length;
+    const itemStep = this.cardWidth + this.cardGap;
 
-    const targetCardCenter = targetIndex * step + (this.cardWidth * this.dpr) / 2;
-    const extraLoops = (6 + Math.floor(Math.random() * 4)) * (numItems * step);
+    const minLaps = 5;
+    const targetCardPosition = minLaps * totalCards + targetItemIndex;
+    this.targetOffset = targetCardPosition * itemStep;
 
-    const trackLength = numItems * step;
-    const currentNorm = ((this.scrollX % trackLength) + trackLength) % trackLength;
-    
-    const desiredNorm = targetCardCenter - (this.centerX);
-    let delta = desiredNorm - currentNorm;
-    if (delta <= 0) delta += trackLength;
+    this.startOffset = this.currentOffset % (totalCards * itemStep);
+    this.isSpinning = true;
+    this.startTime = performance.now();
+    this.lastTickCardIndex = -1;
 
-    this.startScrollX = this.scrollX;
-    this.totalDeltaX = extraLoops + delta;
-    this.spinStartTime = performance.now();
+    if (window.soundEngine) {
+      window.soundEngine.playSpinStart();
+    }
 
-    if (this.onSpinStart) this.onSpinStart();
-    if (window.soundEngine) window.soundEngine.playSpinStart();
-
-    this.animateSpin();
+    this.animate();
   }
 
-  animateSpin() {
-    const elapsed = performance.now() - this.spinStartTime;
-    const progress = Math.min(1, elapsed / this.duration);
+  easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
 
-    const easeOut = 1 - Math.pow(1 - progress, 3.5);
+  animate() {
+    if (!this.isSpinning) return;
 
-    const prevX = this.scrollX;
-    this.scrollX = this.startScrollX + this.totalDeltaX * easeOut;
+    const now = performance.now();
+    const elapsed = now - this.startTime;
+    const progress = Math.min(elapsed / this.duration, 1);
+    const easedProgress = this.easeOutCubic(progress);
 
-    const velocity = (this.scrollX - prevX);
+    this.currentOffset = this.startOffset + (this.targetOffset - this.startOffset) * easedProgress;
 
-    this.checkTickSound(velocity);
+    const itemStep = this.cardWidth + this.cardGap;
+    const currentPassIndex = Math.floor((this.currentOffset + itemStep / 2) / itemStep);
+    if (currentPassIndex !== this.lastTickCardIndex) {
+      this.lastTickCardIndex = currentPassIndex;
+      if (window.soundEngine) {
+        window.soundEngine.playTick();
+      }
+    }
+
     this.draw();
 
     if (progress < 1) {
-      requestAnimationFrame(() => this.animateSpin());
+      requestAnimationFrame(() => this.animate());
     } else {
       this.isSpinning = false;
-      this.winnerIndex = this.targetWinnerIndex;
-      this.draw();
+      const finalItem = this.items[this.winnerIndex];
 
-      const winnerItem = this.items[this.winnerIndex];
-      if (window.soundEngine) window.soundEngine.playWinFanfare();
-      if (this.onSpinEnd) this.onSpinEnd(winnerItem, this.winnerIndex);
-    }
-  }
-
-  checkTickSound(velocity) {
-    if (!this.items || this.items.length === 0) return;
-
-    const step = this.totalCardStep * this.dpr;
-    const trackLength = this.items.length * step;
-    
-    const currentCenterPos = (this.scrollX + this.centerX) % trackLength;
-    const currentCardIndex = Math.floor(currentCenterPos / step) % this.items.length;
-
-    if (currentCardIndex !== this.lastTickCardIndex) {
-      this.lastTickCardIndex = currentCardIndex;
       if (window.soundEngine) {
-        window.soundEngine.playTick(Math.min(1, velocity / 15));
+        window.soundEngine.playWin();
       }
-      if (this.onTick) this.onTick(currentCardIndex);
+
+      if (typeof this.onSpinEnd === 'function') {
+        this.onSpinEnd(finalItem);
+      }
     }
   }
 
   draw() {
     const ctx = this.ctx;
-    const dpr = this.dpr || 1;
-    const width = this.canvas.width;
-    const height = this.canvas.height;
+    const w = this.canvas.width;
+    const h = this.canvas.height;
+    const dpr = window.devicePixelRatio || 1;
 
-    ctx.clearRect(0, 0, width, height);
+    ctx.clearRect(0, 0, w, h);
 
-    if (!this.items || !Array.isArray(this.items) || this.items.length === 0) {
-      ctx.fillStyle = '#999';
-      ctx.font = `${14 * dpr}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.fillText('無選擇英雄', width / 2, height / 2);
-      return;
-    }
+    if (this.items.length === 0) return;
 
+    const itemStep = (this.cardWidth + this.cardGap) * dpr;
     const cardW = this.cardWidth * dpr;
     const cardH = this.cardHeight * dpr;
-    const step = this.totalCardStep * dpr;
+    const centerY = (h - cardH) / 2;
+    const centerX = w / 2;
 
-    const minCardIdx = Math.floor((this.scrollX - width) / step) - 2;
-    const maxCardIdx = Math.ceil((this.scrollX + width * 2) / step) + 2;
+    const totalItems = this.items.length;
+    const visibleHalfCount = Math.ceil(w / (2 * itemStep)) + 2;
 
-    for (let idx = minCardIdx; idx <= maxCardIdx; idx++) {
-      const itemIndex = ((idx % this.items.length) + this.items.length) % this.items.length;
-      const item = this.items[itemIndex];
-      if (!item) continue;
+    const baseIndex = Math.floor((this.currentOffset * dpr) / itemStep);
+    const offsetWithinStep = (this.currentOffset * dpr) % itemStep;
 
-      const cardLeft = idx * step - this.scrollX;
-      const cardTop = (height - cardH) / 2;
+    // Draw scrolling hero cards
+    for (let i = -visibleHalfCount; i <= visibleHalfCount; i++) {
+      const cardAbsoluteIndex = baseIndex + i;
+      let wrappedIndex = cardAbsoluteIndex % totalItems;
+      if (wrappedIndex < 0) wrappedIndex += totalItems;
 
-      const isWinner = (this.winnerIndex === itemIndex);
+      const item = this.items[wrappedIndex];
+      const cardX = centerX - (this.cardWidth * dpr) / 2 + (i * itemStep) - offsetWithinStep;
 
-      try {
-        this.drawHeroCard(ctx, item, cardLeft, cardTop, cardW, cardH, isWinner, dpr);
-      } catch (e) {
-        console.error('Error drawing hero card:', e);
-      }
+      const isWinnerCard = (!this.isSpinning && wrappedIndex === this.winnerIndex && Math.abs(cardX + cardW / 2 - centerX) < itemStep / 2);
+
+      this.drawCard(ctx, item, cardX, centerY, cardW, cardH, isWinnerCard, dpr);
     }
 
-    this.drawCenterSelectorFrame(ctx, width, height, dpr);
+    // Center Aiming Reticle (Apex Style Pointer)
+    this.drawCenterReticle(ctx, centerX, centerY, cardW, cardH, dpr);
   }
 
-  drawHeroCard(ctx, item, x, y, w, h, isWinner, dpr) {
+  drawCard(ctx, item, x, y, w, h, isWinner, dpr) {
     if (!item) return;
     ctx.save();
 
@@ -288,19 +228,19 @@ class HeroReel {
 
     // Card background
     ctx.beginPath();
-    window.safeRoundRect(ctx, x, y, w, h, 10 * dpr);
+    window.safeRoundRect(ctx, x, y, w, h, 12 * dpr);
     ctx.fillStyle = 'rgba(20, 23, 32, 0.96)';
     ctx.fill();
 
     // Card border gradient & glow
-    ctx.lineWidth = isWinner ? 3.5 * dpr : 1.8 * dpr;
+    ctx.lineWidth = isWinner ? 4 * dpr : 2 * dpr;
     ctx.strokeStyle = isWinner ? '#FFD44A' : (item.color || '#FF4655');
     if (isWinner) {
       ctx.shadowColor = '#FFD44A';
-      ctx.shadowBlur = 18 * dpr;
+      ctx.shadowBlur = 20 * dpr;
     } else {
       ctx.shadowColor = item.color || '#FF4655';
-      ctx.shadowBlur = 4 * dpr;
+      ctx.shadowBlur = 5 * dpr;
     }
     ctx.stroke();
 
@@ -323,30 +263,29 @@ class HeroReel {
 
       ctx.save();
       ctx.beginPath();
-      window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 8 * dpr);
+      window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
       ctx.clip();
 
       ctx.drawImage(imgObj, sx, sy, sw, sh, destX, avatarY, targetW, targetH);
 
-      const shadowGrad = ctx.createLinearGradient(0, avatarY + targetH - 25 * dpr, 0, avatarY + targetH);
+      const shadowGrad = ctx.createLinearGradient(0, avatarY + targetH - 30 * dpr, 0, avatarY + targetH);
       shadowGrad.addColorStop(0, 'rgba(0,0,0,0)');
-      shadowGrad.addColorStop(1, 'rgba(20, 23, 32, 0.9)');
+      shadowGrad.addColorStop(1, 'rgba(15, 17, 24, 0.95)');
       ctx.fillStyle = shadowGrad;
-      ctx.fillRect(destX, avatarY + targetH - 25 * dpr, targetW, 25 * dpr);
+      ctx.fillRect(destX, avatarY + targetH - 30 * dpr, targetW, 30 * dpr);
 
       ctx.restore();
     } else {
-      // Fallback Emblem
       ctx.save();
       ctx.beginPath();
-      window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 8 * dpr);
+      window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
       ctx.fillStyle = item.color || '#333';
       ctx.globalAlpha = 0.25;
       ctx.fill();
 
       ctx.globalAlpha = 1.0;
       ctx.fillStyle = item.color || '#FFFFFF';
-      ctx.font = `bold ${30 * dpr}px "Orbitron", sans-serif`;
+      ctx.font = `bold ${32 * dpr}px "Orbitron", sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       const initial = item.name ? item.name.charAt(0) : '?';
@@ -354,52 +293,53 @@ class HeroReel {
       ctx.restore();
     }
 
-    // Hero Name Footer
+    // Hero Name Footer - BOLD HIGH-CONTRAST FOR CORNER STREAM SCALING
+    ctx.save();
     ctx.fillStyle = isWinner ? '#FFD44A' : '#FFFFFF';
-    ctx.font = `bold ${12 * dpr}px "Noto Sans TC", sans-serif`;
+    ctx.font = `900 ${16 * dpr}px "Noto Sans TC", sans-serif`;
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.9)';
-    ctx.shadowBlur = 4 * dpr;
-    ctx.fillText(item.name || '', x + w / 2, y + h - 14 * dpr);
+    ctx.textBaseline = 'bottom';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+    ctx.shadowBlur = 6 * dpr;
+    ctx.fillText(item.name, x + w / 2, y + h - 5 * dpr);
+    ctx.restore();
 
     ctx.restore();
   }
 
-  drawCenterSelectorFrame(ctx, width, height, dpr) {
-    const frameW = (this.cardWidth + 10) * dpr;
-    const frameH = (this.cardHeight + 12) * dpr;
-    const frameX = (width - frameW) / 2;
-    const frameY = (height - frameH) / 2;
-
+  drawCenterReticle(ctx, centerX, centerY, cardW, cardH, dpr) {
     ctx.save();
 
-    ctx.beginPath();
-    window.safeRoundRect(ctx, frameX, frameY, frameW, frameH, 12 * dpr);
-    ctx.lineWidth = 3 * dpr;
-    ctx.strokeStyle = '#FF4655';
-    ctx.shadowColor = '#FF4655';
-    ctx.shadowBlur = 16 * dpr;
-    ctx.stroke();
+    const pointerSize = 14 * dpr;
+    const topY = centerY - 6 * dpr;
+    const bottomY = centerY + cardH + 6 * dpr;
 
+    // Top Red Pointer
     ctx.beginPath();
-    ctx.moveTo(width / 2 - 10 * dpr, frameY - 10 * dpr);
-    ctx.lineTo(width / 2 + 10 * dpr, frameY - 10 * dpr);
-    ctx.lineTo(width / 2, frameY + 3 * dpr);
+    ctx.moveTo(centerX - pointerSize, topY - pointerSize);
+    ctx.lineTo(centerX + pointerSize, topY - pointerSize);
+    ctx.lineTo(centerX, topY);
     ctx.closePath();
     ctx.fillStyle = '#FF4655';
+    ctx.shadowColor = '#FF4655';
+    ctx.shadowBlur = 12 * dpr;
     ctx.fill();
 
+    // Bottom Red Pointer
     ctx.beginPath();
-    ctx.moveTo(width / 2 - 10 * dpr, frameY + frameH + 10 * dpr);
-    ctx.lineTo(width / 2 + 10 * dpr, frameY + frameH + 10 * dpr);
-    ctx.lineTo(width / 2, frameY + frameH - 3 * dpr);
+    ctx.moveTo(centerX - pointerSize, bottomY + pointerSize);
+    ctx.lineTo(centerX + pointerSize, bottomY + pointerSize);
+    ctx.lineTo(centerX, bottomY);
     ctx.closePath();
     ctx.fillStyle = '#FF4655';
+    ctx.shadowColor = '#FF4655';
+    ctx.shadowBlur = 12 * dpr;
     ctx.fill();
 
     ctx.restore();
   }
 }
 
-window.HeroReel = HeroReel;
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = HeroReel;
+}
