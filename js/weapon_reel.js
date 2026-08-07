@@ -5,24 +5,26 @@
  * Features 100% Cross-Browser Safe Rounded Rect Drawing & Error-Proof Canvas Rendering.
  */
 
-function safeRoundRect(ctx, x, y, width, height, radius) {
-  if (typeof ctx.roundRect === 'function') {
-    ctx.roundRect(x, y, width, height, radius);
-  } else {
-    let r = typeof radius === 'number' ? radius : 8;
-    r = Math.min(r, width / 2, height / 2);
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + width - r, y);
-    ctx.arcTo(x + width, y, x + width, y + r, r);
-    ctx.lineTo(x + width, y + height - r);
-    ctx.arcTo(x + width, y + height, x + width - r, y + height, r);
-    ctx.lineTo(x + r, y + height);
-    ctx.arcTo(x, y + height, x, y + height - r, r);
-    ctx.lineTo(x, y + r);
-    ctx.arcTo(x, y, x + r, y, r);
-    ctx.closePath();
-  }
+if (typeof window.safeRoundRect !== 'function') {
+  window.safeRoundRect = function(ctx, x, y, width, height, radius) {
+    if (typeof ctx.roundRect === 'function') {
+      ctx.roundRect(x, y, width, height, radius);
+    } else {
+      let r = typeof radius === 'number' ? radius : 8;
+      r = Math.min(r, width / 2, height / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + width - r, y);
+      ctx.arcTo(x + width, y, x + width, y + r, r);
+      ctx.lineTo(x + width, y + height - r);
+      ctx.arcTo(x + width, y + height, x + width - r, y + height, r);
+      ctx.lineTo(x + r, y + height);
+      ctx.arcTo(x, y + height, x, y + height - r, r);
+      ctx.lineTo(x, y + r);
+      ctx.arcTo(x, y, x + r, y, r);
+      ctx.closePath();
+    }
+  };
 }
 
 class WeaponReel {
@@ -281,7 +283,7 @@ class WeaponReel {
 
     // Card background
     ctx.beginPath();
-    safeRoundRect(ctx, x, y, w, h, 14 * dpr);
+    window.safeRoundRect(ctx, x, y, w, h, 14 * dpr);
     ctx.fillStyle = 'rgba(20, 23, 32, 0.96)';
     ctx.fill();
 
@@ -320,7 +322,7 @@ class WeaponReel {
 
       ctx.save();
       ctx.beginPath();
-      safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
+      window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
       ctx.clip();
 
       ctx.drawImage(imgObj, sx, sy, sw, sh, destX, avatarY, targetW, targetH);
@@ -336,7 +338,7 @@ class WeaponReel {
       // Stylized Apex Weapon Badge Graphics (Fallback)
       ctx.save();
       ctx.beginPath();
-      safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
+      window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
       ctx.fillStyle = themeColor;
       ctx.globalAlpha = 0.15;
       ctx.fill();
@@ -378,7 +380,7 @@ class WeaponReel {
     ctx.save();
 
     ctx.beginPath();
-    safeRoundRect(ctx, frameX, frameY, frameW, frameH, 16 * dpr);
+    window.safeRoundRect(ctx, frameX, frameY, frameW, frameH, 16 * dpr);
     ctx.lineWidth = 3.5 * dpr;
     ctx.strokeStyle = '#00BCD4'; // Cyan neon accent for weapon reticle
     ctx.shadowColor = '#00BCD4';

@@ -2,28 +2,28 @@
  * Horizontal Hero Character Reel Engine
  * Renders a horizontal character selection carousel with image cards,
  * smooth scrolling physics, tick audio triggers, and center target alignment.
- * 
- * Features Aspect-Correct Cover Cropping and 100% Cross-Browser Safe Rounded Rect Drawing.
  */
 
-function safeRoundRect(ctx, x, y, width, height, radius) {
-  if (typeof ctx.roundRect === 'function') {
-    ctx.roundRect(x, y, width, height, radius);
-  } else {
-    let r = typeof radius === 'number' ? radius : 8;
-    r = Math.min(r, width / 2, height / 2);
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + width - r, y);
-    ctx.arcTo(x + width, y, x + width, y + r, r);
-    ctx.lineTo(x + width, y + height - r);
-    ctx.arcTo(x + width, y + height, x + width - r, y + height, r);
-    ctx.lineTo(x + r, y + height);
-    ctx.arcTo(x, y + height, x, y + height - r, r);
-    ctx.lineTo(x, y + r);
-    ctx.arcTo(x, y, x + r, y, r);
-    ctx.closePath();
-  }
+if (typeof window.safeRoundRect !== 'function') {
+  window.safeRoundRect = function(ctx, x, y, width, height, radius) {
+    if (typeof ctx.roundRect === 'function') {
+      ctx.roundRect(x, y, width, height, radius);
+    } else {
+      let r = typeof radius === 'number' ? radius : 8;
+      r = Math.min(r, width / 2, height / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + width - r, y);
+      ctx.arcTo(x + width, y, x + width, y + r, r);
+      ctx.lineTo(x + width, y + height - r);
+      ctx.arcTo(x + width, y + height, x + width - r, y + height, r);
+      ctx.lineTo(x + r, y + height);
+      ctx.arcTo(x, y + height, x, y + height - r, r);
+      ctx.lineTo(x, y + r);
+      ctx.arcTo(x, y, x + r, y, r);
+      ctx.closePath();
+    }
+  };
 }
 
 class HeroReel {
@@ -70,7 +70,7 @@ class HeroReel {
     }
 
     this.items.forEach(item => {
-      if (!item.id) return;
+      if (!item || !item.id) return;
 
       const key = item.id;
       if (!forceReload && this.imageCache[key] && this.imageCache[key] instanceof Image) {
@@ -235,7 +235,7 @@ class HeroReel {
 
     ctx.clearRect(0, 0, width, height);
 
-    if (!this.items || this.items.length === 0) {
+    if (!this.items || !Array.isArray(this.items) || this.items.length === 0) {
       ctx.fillStyle = '#999';
       ctx.font = `${16 * dpr}px sans-serif`;
       ctx.textAlign = 'center';
@@ -253,19 +253,25 @@ class HeroReel {
     for (let idx = minCardIdx; idx <= maxCardIdx; idx++) {
       const itemIndex = ((idx % this.items.length) + this.items.length) % this.items.length;
       const item = this.items[itemIndex];
+      if (!item) continue;
 
       const cardLeft = idx * step - this.scrollX;
       const cardTop = (height - cardH) / 2;
 
       const isWinner = (this.winnerIndex === itemIndex);
 
-      this.drawHeroCard(ctx, item, cardLeft, cardTop, cardW, cardH, isWinner, dpr);
+      try {
+        this.drawHeroCard(ctx, item, cardLeft, cardTop, cardW, cardH, isWinner, dpr);
+      } catch (e) {
+        console.error('Error drawing hero card:', e);
+      }
     }
 
     this.drawCenterSelectorFrame(ctx, width, height, dpr);
   }
 
   drawHeroCard(ctx, item, x, y, w, h, isWinner, dpr) {
+    if (!item) return;
     ctx.save();
 
     if (isWinner) {
@@ -276,7 +282,7 @@ class HeroReel {
 
     // Card background
     ctx.beginPath();
-    safeRoundRect(ctx, x, y, w, h, 14 * dpr);
+    window.safeRoundRect(ctx, x, y, w, h, 14 * dpr);
     ctx.fillStyle = 'rgba(20, 23, 32, 0.96)';
     ctx.fill();
 
@@ -312,7 +318,7 @@ class HeroReel {
 
       ctx.save();
       ctx.beginPath();
-      safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
+      window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
       ctx.clip();
 
       ctx.drawImage(imgObj, sx, sy, sw, sh, destX, avatarY, targetW, targetH);
@@ -329,7 +335,7 @@ class HeroReel {
       // Fallback Emblem
       ctx.save();
       ctx.beginPath();
-      safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
+      window.safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
       ctx.fillStyle = item.color || '#333';
       ctx.globalAlpha = 0.25;
       ctx.fill();
@@ -365,7 +371,7 @@ class HeroReel {
     ctx.save();
 
     ctx.beginPath();
-    safeRoundRect(ctx, frameX, frameY, frameW, frameH, 16 * dpr);
+    window.safeRoundRect(ctx, frameX, frameY, frameW, frameH, 16 * dpr);
     ctx.lineWidth = 3.5 * dpr;
     ctx.strokeStyle = '#FF4655';
     ctx.shadowColor = '#FF4655';
