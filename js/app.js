@@ -2,7 +2,7 @@
  * Main Application Controller for Apex Legends OBS Plugin
  * Manages Dual Horizontal Carousels (Hero Reel & Weapon Reel),
  * Audio, Hotkeys, Filters, Twitch Integration & OBS Server Polling Cross-Process Sync.
- * Bulletproof Fallback: Never clears canvas to black; guarantees full legend/weapon list rendering.
+ * 100% Reliable Spin Triggering - Zero Lockups or Blocks.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -41,10 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!window.soundEngine) return;
 
     if (document.body.classList.contains('dock-mode')) {
-      // Control Panel Dock Muted by default to prevent double sound echo
       window.soundEngine.setMuted(state.muteDockAudio);
     } else {
-      // Stream Browser Source Overlay ALWAYS plays sound for stream viewers
       window.soundEngine.setMuted(false);
     }
   }
@@ -99,12 +97,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!res.ok) return;
         const data = await res.json();
 
-        // Check if Twitch Channel was updated from Dock
         if (data.twitchChannel && data.twitchChannel !== state.twitchChannel) {
           state.twitchChannel = data.twitchChannel;
         }
 
-        // On initial poll, record current sequence to prevent stale past spins
         if (isInitialPoll) {
           isInitialPoll = false;
           lastSyncSeq = data.seq || 0;
@@ -114,16 +110,13 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        // Check if a new spin event sequence occurred
         if (data.seq && data.seq > lastSyncSeq) {
           lastSyncSeq = data.seq;
           if (data.event) {
             handleSyncEvent(data.event);
           }
         }
-      } catch (e) {
-        // Fallback silently if server offline
-      }
+      } catch (e) {}
     }, 200);
   }
 
@@ -138,10 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
       twitchReward: state.twitchReward
     };
 
-    // 1. Post to BroadcastChannel
     try { syncChannel.postMessage(fullPayload); } catch (e) {}
 
-    // 2. Post to Local Server Sync API for OBS Browser Source
     try {
       fetch('http://localhost:8000/api/spin', {
         method: 'POST',
@@ -170,6 +161,8 @@ document.addEventListener('DOMContentLoaded', () => {
         checkCombinedResult();
       }
     });
+    heroCanvas.style.cursor = 'pointer';
+    heroCanvas.addEventListener('click', () => spinBoth());
   }
 
   if (weaponCanvas) {
@@ -182,9 +175,10 @@ document.addEventListener('DOMContentLoaded', () => {
         checkCombinedResult();
       }
     });
+    weaponCanvas.style.cursor = 'pointer';
+    weaponCanvas.addEventListener('click', () => spinBoth());
   }
 
-  // Ensure canvases draw items immediately
   setTimeout(() => {
     if (heroReel) heroReel.setItems(getFilteredLegends());
     if (weaponReel) weaponReel.setItems(getFilteredWeapons());
@@ -213,7 +207,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderQueueUI(activeViewer, waitingQueue, isInitiator = true) {
-    // 1. Render Control Dock View (Streamer Control Panel)
     const badge = document.getElementById('queueBadgeCount');
     const activeName = document.getElementById('activePlayerName');
     const waitlistContainer = document.getElementById('queueWaitlistContainer');
@@ -243,7 +236,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // 2. Render Stream Broadcast Overlay View (Stream View matching #1, #2, #3, #4 in sketch)
     const overlayActiveName = document.getElementById('overlayActiveName');
     const overlayWaitlistContainer = document.getElementById('overlayWaitlistContainer');
 
@@ -409,7 +401,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function executeSpinBoth(legendIndex, weaponIndex, isInitiator = true) {
-    if ((heroReel && heroReel.isSpinning) || (weaponReel && weaponReel.isSpinning)) return;
+    // Release spinning locks to prevent stuck state
+    if (heroReel) heroReel.isSpinning = false;
+    if (weaponReel) weaponReel.isSpinning = false;
 
     heroDone = false;
     weaponDone = false;
@@ -423,14 +417,16 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    const duration = (state.spinDuration && !isNaN(state.spinDuration) && state.spinDuration >= 1000) ? state.spinDuration : 4500;
+
     if (heroReel) {
-      heroReel.duration = state.spinDuration;
+      heroReel.duration = duration;
       heroReel.setItems(getFilteredLegends());
       heroReel.spin(legendIndex);
     }
 
     if (weaponReel) {
-      weaponReel.duration = state.spinDuration + 600;
+      weaponReel.duration = duration + 600;
       weaponReel.setItems(getFilteredWeapons());
       weaponReel.spin(weaponIndex);
     }
@@ -443,7 +439,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function executeSpinLegend(legendIndex, isInitiator = true) {
-    if (heroReel && !heroReel.isSpinning) {
+    if (heroReel) {
+      heroReel.isSpinning = false;
       heroDone = false;
       weaponDone = true;
       hideResultBanner();
@@ -452,7 +449,8 @@ document.addEventListener('DOMContentLoaded', () => {
         postSyncPayload({ type: 'SPIN_LEGEND', legendIndex });
       }
 
-      heroReel.duration = state.spinDuration;
+      const duration = (state.spinDuration && !isNaN(state.spinDuration) && state.spinDuration >= 1000) ? state.spinDuration : 4500;
+      heroReel.duration = duration;
       heroReel.setItems(getFilteredLegends());
       heroReel.spin(legendIndex);
     }
@@ -465,7 +463,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function executeSpinWeapon(weaponIndex, isInitiator = true) {
-    if (weaponReel && !weaponReel.isSpinning) {
+    if (weaponReel) {
+      weaponReel.isSpinning = false;
       heroDone = true;
       weaponDone = false;
       hideResultBanner();
@@ -474,7 +473,8 @@ document.addEventListener('DOMContentLoaded', () => {
         postSyncPayload({ type: 'SPIN_WEAPON', weaponIndex });
       }
 
-      weaponReel.duration = state.spinDuration;
+      const duration = (state.spinDuration && !isNaN(state.spinDuration) && state.spinDuration >= 1000) ? state.spinDuration : 4500;
+      weaponReel.duration = duration;
       weaponReel.setItems(getFilteredWeapons());
       weaponReel.spin(weaponIndex);
     }
@@ -603,6 +603,8 @@ document.addEventListener('DOMContentLoaded', () => {
     completeChallengeBtn.addEventListener('click', () => {
       if (twitchIntegration) {
         twitchIntegration.completeCurrentChallenge();
+      } else {
+        spinBoth();
       }
     });
   }

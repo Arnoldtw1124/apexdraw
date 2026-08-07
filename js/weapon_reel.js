@@ -2,7 +2,7 @@
  * Horizontal Weapon Reel Selector (WeaponReel)
  * 60 FPS smooth physics interpolation, dynamic card bounds scaling,
  * high-contrast bold fonts for OBS stream corner scaling readability.
- * Guaranteed Non-Zero Canvas Bounds for OBS CEF Browser Source.
+ * Guaranteed Non-Zero Canvas Bounds & Stuck-Free Safety Protection.
  */
 
 class WeaponReel {
@@ -119,7 +119,12 @@ class WeaponReel {
   }
 
   spin(targetItemIndex = null) {
-    if (this.isSpinning || this.items.length === 0) return;
+    if (this.items.length === 0) {
+      if (typeof APEX_DATA !== 'undefined' && APEX_DATA.weapons) {
+        this.items = [...APEX_DATA.weapons];
+      }
+    }
+    if (this.items.length === 0) return;
 
     if (targetItemIndex === null || targetItemIndex < 0 || targetItemIndex >= this.items.length) {
       targetItemIndex = Math.floor(Math.random() * this.items.length);
@@ -150,7 +155,8 @@ class WeaponReel {
 
     const now = performance.now();
     const elapsed = now - this.startTime;
-    const progress = Math.min(elapsed / this.duration, 1);
+    const safeDuration = (this.duration && !isNaN(this.duration) && this.duration >= 1000) ? this.duration : 4500;
+    const progress = Math.min(elapsed / safeDuration, 1);
     const easedProgress = this.easeOutCubic(progress);
 
     this.currentOffset = this.startOffset + (this.targetOffset - this.startOffset) * easedProgress;
@@ -163,11 +169,11 @@ class WeaponReel {
 
     this.draw();
 
-    if (progress < 1) {
+    if (progress < 1 && elapsed < safeDuration + 3000) {
       requestAnimationFrame(() => this.animate());
     } else {
       this.isSpinning = false;
-      const finalItem = this.items[this.winnerIndex];
+      const finalItem = this.items[this.winnerIndex >= 0 ? this.winnerIndex : 0];
 
       if (typeof this.onSpinEnd === 'function') {
         this.onSpinEnd(finalItem);
@@ -229,13 +235,11 @@ class WeaponReel {
       ctx.translate(-(x + w / 2), -(y + h / 2));
     }
 
-    // Card background
     ctx.beginPath();
     window.safeRoundRect(ctx, x, y, w, h, 12 * dpr);
     ctx.fillStyle = 'rgba(20, 23, 32, 0.96)';
     ctx.fill();
 
-    // Card border gradient & glow
     ctx.lineWidth = isWinner ? 4 * dpr : 2 * dpr;
     ctx.strokeStyle = isWinner ? '#4AF2FF' : (item.color || '#FF4655');
     if (isWinner) {
@@ -247,7 +251,6 @@ class WeaponReel {
     }
     ctx.stroke();
 
-    // Image container dimensions
     const imgObj = item.id ? this.imageCache[item.id] : null;
     const destX = x + 4 * dpr;
     const avatarY = y + 4 * dpr;
@@ -296,7 +299,6 @@ class WeaponReel {
       ctx.restore();
     }
 
-    // Weapon Name Footer - BOLD HIGH-CONTRAST FOR CORNER STREAM SCALING
     ctx.save();
     ctx.fillStyle = isWinner ? '#4AF2FF' : '#FFFFFF';
     ctx.font = `900 ${16 * dpr}px "Noto Sans TC", sans-serif`;
@@ -317,7 +319,6 @@ class WeaponReel {
     const topY = centerY - 6 * dpr;
     const bottomY = centerY + cardH + 6 * dpr;
 
-    // Top Cyan Pointer
     ctx.beginPath();
     ctx.moveTo(centerX - pointerSize, topY - pointerSize);
     ctx.lineTo(centerX + pointerSize, topY - pointerSize);
@@ -328,7 +329,6 @@ class WeaponReel {
     ctx.shadowBlur = 12 * dpr;
     ctx.fill();
 
-    // Bottom Cyan Pointer
     ctx.beginPath();
     ctx.moveTo(centerX - pointerSize, bottomY + pointerSize);
     ctx.lineTo(centerX + pointerSize, bottomY + pointerSize);

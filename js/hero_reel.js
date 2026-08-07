@@ -2,7 +2,7 @@
  * Horizontal Hero Character Carousel Selector Reel (HeroReel)
  * 60 FPS smooth physics interpolation, dynamic card bounds scaling,
  * high-contrast bold fonts for OBS stream corner scaling readability.
- * Guaranteed Non-Zero Canvas Bounds for OBS CEF Browser Source.
+ * Guaranteed Non-Zero Canvas Bounds & Stuck-Free Safety Protection.
  */
 
 class HeroReel {
@@ -119,7 +119,12 @@ class HeroReel {
   }
 
   spin(targetItemIndex = null) {
-    if (this.isSpinning || this.items.length === 0) return;
+    if (this.items.length === 0) {
+      if (typeof APEX_DATA !== 'undefined' && APEX_DATA.legends) {
+        this.items = [...APEX_DATA.legends];
+      }
+    }
+    if (this.items.length === 0) return;
 
     if (targetItemIndex === null || targetItemIndex < 0 || targetItemIndex >= this.items.length) {
       targetItemIndex = Math.floor(Math.random() * this.items.length);
@@ -154,7 +159,8 @@ class HeroReel {
 
     const now = performance.now();
     const elapsed = now - this.startTime;
-    const progress = Math.min(elapsed / this.duration, 1);
+    const safeDuration = (this.duration && !isNaN(this.duration) && this.duration >= 1000) ? this.duration : 4500;
+    const progress = Math.min(elapsed / safeDuration, 1);
     const easedProgress = this.easeOutCubic(progress);
 
     this.currentOffset = this.startOffset + (this.targetOffset - this.startOffset) * easedProgress;
@@ -170,11 +176,11 @@ class HeroReel {
 
     this.draw();
 
-    if (progress < 1) {
+    if (progress < 1 && elapsed < safeDuration + 3000) {
       requestAnimationFrame(() => this.animate());
     } else {
       this.isSpinning = false;
-      const finalItem = this.items[this.winnerIndex];
+      const finalItem = this.items[this.winnerIndex >= 0 ? this.winnerIndex : 0];
 
       if (window.soundEngine) {
         window.soundEngine.playWin();
@@ -214,7 +220,6 @@ class HeroReel {
     const baseIndex = Math.floor((this.currentOffset * dpr) / itemStep);
     const offsetWithinStep = (this.currentOffset * dpr) % itemStep;
 
-    // Draw scrolling hero cards
     for (let i = -visibleHalfCount; i <= visibleHalfCount; i++) {
       const cardAbsoluteIndex = baseIndex + i;
       let wrappedIndex = cardAbsoluteIndex % totalItems;
@@ -228,7 +233,6 @@ class HeroReel {
       this.drawCard(ctx, item, cardX, centerY, cardW, cardH, isWinnerCard, dpr);
     }
 
-    // Center Aiming Reticle (Apex Style Pointer)
     this.drawCenterReticle(ctx, centerX, centerY, cardW, cardH, dpr);
   }
 
@@ -242,13 +246,11 @@ class HeroReel {
       ctx.translate(-(x + w / 2), -(y + h / 2));
     }
 
-    // Card background
     ctx.beginPath();
     window.safeRoundRect(ctx, x, y, w, h, 12 * dpr);
     ctx.fillStyle = 'rgba(20, 23, 32, 0.96)';
     ctx.fill();
 
-    // Card border gradient & glow
     ctx.lineWidth = isWinner ? 4 * dpr : 2 * dpr;
     ctx.strokeStyle = isWinner ? '#FFD44A' : (item.color || '#FF4655');
     if (isWinner) {
@@ -260,7 +262,6 @@ class HeroReel {
     }
     ctx.stroke();
 
-    // Image container dimensions
     const imgObj = item.id ? this.imageCache[item.id] : null;
     const destX = x + 4 * dpr;
     const avatarY = y + 4 * dpr;
@@ -309,7 +310,6 @@ class HeroReel {
       ctx.restore();
     }
 
-    // Hero Name Footer - BOLD HIGH-CONTRAST FOR CORNER STREAM SCALING
     ctx.save();
     ctx.fillStyle = isWinner ? '#FFD44A' : '#FFFFFF';
     ctx.font = `900 ${16 * dpr}px "Noto Sans TC", sans-serif`;
@@ -330,7 +330,6 @@ class HeroReel {
     const topY = centerY - 6 * dpr;
     const bottomY = centerY + cardH + 6 * dpr;
 
-    // Top Red Pointer
     ctx.beginPath();
     ctx.moveTo(centerX - pointerSize, topY - pointerSize);
     ctx.lineTo(centerX + pointerSize, topY - pointerSize);
@@ -341,7 +340,6 @@ class HeroReel {
     ctx.shadowBlur = 12 * dpr;
     ctx.fill();
 
-    // Bottom Red Pointer
     ctx.beginPath();
     ctx.moveTo(centerX - pointerSize, bottomY + pointerSize);
     ctx.lineTo(centerX + pointerSize, bottomY + pointerSize);
