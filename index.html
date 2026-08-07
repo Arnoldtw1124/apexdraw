@@ -22,51 +22,19 @@
       </div>
     </header>
 
-    <!-- Main Content Area -->
+    <!-- Main Content Area: Aligned for OBS Dock & Overlay -->
     <main class="main-content">
       
-      <!-- Left: Dual Horizontal Reel Section -->
+      <!-- Left: Dual Horizontal Reel Section (Hero Top, Weapon Bottom, Action Bar) -->
       <section class="wheels-section">
-
-        <!-- Result Combination Banner -->
-        <div id="resultBanner" class="result-banner">
-          <div class="result-title">隨機組合結果</div>
-          <div id="resultCombination" class="result-combination">請點擊下方旋轉按鈕！</div>
-        </div>
-
+        
         <!-- Twitch Realtime Live Notice Banner -->
         <div id="twitchNoticeBanner" class="twitch-notice-banner" style="display: none;">
           <span id="twitchNoticeText">Twitch 實況動態訊息</span>
         </div>
 
-        <!-- Streamer Queue Control Card -->
-        <div id="queueControlCard" class="queue-control-card">
-          <div class="queue-header">
-            <span class="queue-title">實況主佇列控場</span>
-            <span id="queueBadgeCount" class="queue-badge">佇列: 0 人</span>
-          </div>
-
-          <div class="queue-active-player">
-            <div class="active-label">當前挑戰玩家：</div>
-            <div id="activePlayerName" class="active-name">無 (等待觀眾點數兌換)</div>
-          </div>
-
-          <div class="queue-actions">
-            <button id="completeChallengeBtn" class="btn btn-primary" style="flex: 2; justify-content: center; background: #10B981; border-color: #10B981;">
-              完成此局挑戰 (抽取佇列下一位)
-            </button>
-            <button id="clearQueueBtn" class="btn" style="flex: 1; justify-content: center; background: rgba(239, 68, 68, 0.2); border-color: #EF4444; color: #FCA5A5;">
-              清空佇列
-            </button>
-          </div>
-
-          <div id="queueWaitlistContainer" class="queue-waitlist">
-            <!-- Waiting list items injected by JS -->
-          </div>
-        </div>
-
         <div class="wheels-container">
-          <!-- Top: Horizontal Hero Selector Reel -->
+          <!-- 1. Top: Horizontal Hero Selector Reel -->
           <div class="hero-reel-card">
             <div class="wheel-title">英雄</div>
             <div class="hero-reel-wrapper">
@@ -74,7 +42,7 @@
             </div>
           </div>
 
-          <!-- Bottom: Horizontal Weapon Selector Reel -->
+          <!-- 2. Bottom: Horizontal Weapon Selector Reel -->
           <div class="hero-reel-card">
             <div class="wheel-title">槍械</div>
             <div class="hero-reel-wrapper">
@@ -93,19 +61,55 @@
             <button id="spinWeaponBtn" class="btn">單獨抽槍械</button>
           </div>
         </div>
+
+        <!-- Result Combination Banner -->
+        <div id="resultBanner" class="result-banner">
+          <div class="result-title">隨機組合結果</div>
+          <div id="resultCombination" class="result-combination">請點擊上方按鈕或由觀眾扣點抽籤！</div>
+        </div>
+
       </section>
 
-      <!-- Right: Control & Editor Sidebar -->
+      <!-- Right: Control & Editor Sidebar (Queue, Legends, Weapons, Twitch, Settings) -->
       <aside class="sidebar-panel">
         <div class="tab-nav">
-          <button class="tab-btn active" data-tab="tabLegends">英雄庫</button>
+          <button class="tab-btn active" data-tab="tabQueue">控場</button>
+          <button class="tab-btn" data-tab="tabLegends">英雄庫</button>
           <button class="tab-btn" data-tab="tabWeapons">槍械庫</button>
           <button class="tab-btn" data-tab="tabTwitch">Twitch 連動</button>
           <button class="tab-btn" data-tab="tabSettings">設定</button>
         </div>
 
-        <!-- Tab 1: Legends Editor -->
-        <div id="tabLegends" class="tab-content active">
+        <!-- Tab 1: Streamer Queue Controller -->
+        <div id="tabQueue" class="tab-content active">
+          <div id="queueControlCard" class="queue-control-card">
+            <div class="queue-header">
+              <span class="queue-title">實況主佇列控場</span>
+              <span id="queueBadgeCount" class="queue-badge">佇列: 0 人</span>
+            </div>
+
+            <div class="queue-active-player">
+              <div class="active-label">當前挑戰玩家：</div>
+              <div id="activePlayerName" class="active-name">無 (等待觀眾點數兌換)</div>
+            </div>
+
+            <div class="queue-actions">
+              <button id="completeChallengeBtn" class="btn btn-primary" style="flex: 2; justify-content: center; background: #10B981; border-color: #10B981; font-size: 1rem; padding: 12px 10px;">
+                完成此局挑戰 (抽取下一位)
+              </button>
+              <button id="clearQueueBtn" class="btn" style="flex: 1; justify-content: center; background: rgba(239, 68, 68, 0.2); border-color: #EF4444; color: #FCA5A5; font-size: 0.9rem;">
+                清空佇列
+              </button>
+            </div>
+
+            <div id="queueWaitlistContainer" class="queue-waitlist">
+              <!-- Waiting list items injected by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Legends Editor -->
+        <div id="tabLegends" class="tab-content">
           <div class="item-filter-tools">
             <button id="selectAllLegendsBtn" class="btn">全選</button>
             <button id="deselectAllLegendsBtn" class="btn">全不選</button>
@@ -115,7 +119,7 @@
           </div>
         </div>
 
-        <!-- Tab 2: Weapons Editor -->
+        <!-- Tab 3: Weapons Editor -->
         <div id="tabWeapons" class="tab-content">
           <div class="item-filter-tools">
             <button id="selectAllWeaponsBtn" class="btn">全選</button>
@@ -126,7 +130,7 @@
           </div>
         </div>
 
-        <!-- Tab 3: Zero-Setup Twitch Integration -->
+        <!-- Tab 4: Zero-Setup Twitch Integration -->
         <div id="tabTwitch" class="tab-content">
           <div id="twitchStatusBadge" class="twitch-status-badge disconnected">
             Twitch 未連線
@@ -173,7 +177,7 @@
           </div>
         </div>
 
-        <!-- Tab 4: Settings -->
+        <!-- Tab 5: Settings -->
         <div id="tabSettings" class="tab-content">
           <div class="setting-group">
             <label for="volumeSlider">音效音量</label>
