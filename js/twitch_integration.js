@@ -1,9 +1,8 @@
 /**
  * Twitch Integration Module for Apex OBS Visual Roulette
- * Handles Twitch Channel Points Redemptions, Custom Rewards & Chat Commands.
- * 
- * Strictly checks configured Reward Name so unselected Twitch rewards
- * (like default "醒目標示我的訊息") will NOT trigger the wheel.
+ * Multi-Protocol Listener supporting:
+ * 1. Twitch IRC WebSocket (Chat Commands)
+ * 2. Twitch PubSub WebSocket with OAuth Token (0-typing Single-Click Point Redemptions!)
  */
 
 class TwitchIntegration {
@@ -40,11 +39,19 @@ class TwitchIntegration {
     if (!channelName) return;
 
     this.channel = channelName.trim().toLowerCase().replace(/^#/, '');
-    if (oauthToken) this.oauthToken = oauthToken.trim().replace(/^oauth:/, '');
+    if (oauthToken) {
+      this.oauthToken = oauthToken.trim().replace(/^oauth:/, '');
+    }
 
     this.disconnect();
     this.updateStatus('connecting', `正在連線至 Twitch 頻道 #${this.channel}...`);
-    this.log(`開始建立與 #${this.channel} 的頻道與點數監聽...`);
+    this.log(`開始建立與 #${this.channel} 的頻道與點數連線...`);
+
+    if (this.oauthToken) {
+      this.log('🔑 已檢測到 OAuth 授權 Token，將啟用 Twitch PubSub 0 打字單擊點數監聽！');
+    } else {
+      this.log('⚠️ 尚未提供 OAuth Token (若要免打字單擊即抽，建議點擊 1-Click 授權)');
+    }
 
     // 1. Connect Twitch IRC WebSocket
     this.connectIRC();
@@ -85,7 +92,7 @@ class TwitchIntegration {
       this.pubsubWs = new WebSocket('wss://pubsub-edge.twitch.tv');
 
       this.pubsubWs.onopen = () => {
-        this.log('PubSub 點數專用 WebSocket 已開啟！');
+        this.log('PubSub 點數專用 WebSocket 已開啟，向 Twitch 訂閱主題...');
         this.subscribePubSubTopics();
 
         if (this.pingInterval) clearInterval(this.pingInterval);
@@ -126,22 +133,25 @@ class TwitchIntegration {
       const userId = data?.data?.user?.id;
 
       if (userId) {
-        this.log(`已成功取得 Twitch 頻道 ID (${userId})，訂閱忠誠點數事件...`);
+        this.log(`成功取得 Twitch 頻道 ID: ${userId}，傳送 LISTEN 訊息...`);
+
+        const topics = [
+          `community-points-channel-v1.${userId}`,
+          `channel-points-channel-v1.${userId}`
+        ];
 
         const listenMsg = {
           type: 'LISTEN',
           nonce: Math.random().toString(36).substring(2, 15),
           data: {
-            topics: [
-              `community-points-channel-v1.${userId}`,
-              `channel-points-channel-v1.${userId}`
-            ],
+            topics: topics,
             auth_token: this.oauthToken || ''
           }
         };
 
         if (this.pubsubWs && this.pubsubWs.readyState === WebSocket.OPEN) {
           this.pubsubWs.send(JSON.stringify(listenMsg));
+          this.log(`已傳送 PubSub LISTEN 指令 (Token: ${this.oauthToken ? '已帶入' : '無'})`);
         }
       } else {
         this.log(`無法從 Twitch 取得 #${this.channel} 的 ID`);
@@ -170,21 +180,32 @@ class TwitchIntegration {
       const msg = JSON.parse(rawMsg);
       if (msg.type === 'PONG') return;
 
+      if (msg.type === 'RESPONSE') {
+        if (msg.error) {
+          this.log(`⚠️ PubSub 回應錯誤: ${msg.error} (可能需要 OAuth Token 授權)`);
+        } else {
+          this.log(`🟢 PubSub 訂閱成功！已準備接收 0 打字單擊點數事件！`);
+        }
+        return;
+      }
+
       if (msg.type === 'MESSAGE' && msg.data) {
         const payload = JSON.parse(msg.data.message || '{}');
+        const eventType = payload.type || '';
 
-        if (payload.type === 'reward-redeemed' || payload.type === 'custom-reward-created') {
+        this.log(`PubSub 收到點數訊息: ${eventType}`);
+
+        if (eventType === 'reward-redeemed' || eventType === 'custom-reward-created') {
           const redemption = payload.data?.redemption;
           const rewardTitle = redemption?.reward?.title || '';
           const userName = redemption?.user?.display_name || redemption?.user?.login || '觀眾';
 
-          this.log(`收到 PubSub 點數兌換事件: "${rewardTitle}" 來自 @${userName}`);
+          this.log(`🎉 [PubSub 免打字點擊] 收到點數兌換: "${rewardTitle}" 來自 @${userName}`);
 
           const cleanTarget = this.rewardName ? this.rewardName.toLowerCase().trim() : '';
           const cleanTitle = rewardTitle.toLowerCase().trim();
 
-          // STRICT CHECK: Only trigger if the redeemed reward matches configured name!
-          if (cleanTarget && (cleanTitle.includes(cleanTarget) || cleanTarget.includes(cleanTitle))) {
+          if (!cleanTarget || cleanTitle.includes(cleanTarget) || cleanTarget.includes(cleanTitle)) {
             this.log(`🎯 PubSub 匹配成功！名稱吻合: "${rewardTitle}"`);
             if (this.onTwitchNotice) {
               this.onTwitchNotice(`觀眾 @${userName} 兌換了忠誠點數【${rewardTitle}】！`);
@@ -195,7 +216,9 @@ class TwitchIntegration {
           }
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error('Error handling PubSub message:', e);
+    }
   }
 
   handleIRCMessage(rawMessage) {
@@ -265,7 +288,6 @@ class TwitchIntegration {
       const cleanContent = messageContent.toLowerCase().trim();
       const cleanTargetReward = this.rewardName ? this.rewardName.toLowerCase().trim() : '';
 
-      // STRICT MATCHING: Check if user configured "醒目" OR if text matches configured reward name
       const isConfiguredAsHighlight = cleanTargetReward.includes('醒目') || cleanTargetReward.includes('highlight');
 
       let isMatched = false;
@@ -281,7 +303,7 @@ class TwitchIntegration {
       }
 
       if (isMatched) {
-        this.log(`🎯 嚴格匹配成功！來自 @${username} (匹配項目: ${this.rewardName})`);
+        this.log(`🎯 IRC 標籤匹配成功！來自 @${username} (匹配項目: ${this.rewardName})`);
         if (this.onTwitchNotice) {
           this.onTwitchNotice(`觀眾 @${username} 兌換了忠誠點數【${this.rewardName}】！`);
         }

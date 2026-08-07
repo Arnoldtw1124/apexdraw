@@ -114,9 +114,14 @@
           <div class="setting-group">
             <label for="twitchRewardInput">忠誠點數兌換項目名稱</label>
             <input type="text" id="twitchRewardInput" value="抽隨機英雄和槍枝" placeholder="例如: 抽隨機英雄和槍枝" style="padding: 8px 12px; background: var(--apex-card); border: 1px solid var(--apex-border); color: #fff; border-radius: var(--radius-md);">
-            <span style="font-size: 0.82rem; color: var(--accent-gold); line-height: 1.4;">
-              💡 提示：於 Twitch 後台建立自訂點數時，請「勾選：需要觀眾輸入文字」，聊天室才能推送點數標籤喔！
-            </span>
+          </div>
+
+          <div class="setting-group" style="margin-top: 4px;">
+            <label for="twitchOauthInput">Twitch 點數授權 Token (單擊免打字必備)</label>
+            <input type="password" id="twitchOauthInput" placeholder="授權 Token (點下方按鈕自動帶入)" style="padding: 8px 12px; background: var(--apex-card); border: 1px solid var(--apex-border); color: #fff; border-radius: var(--radius-md);">
+            <a id="getOauthLinkBtn" href="https://id.twitch.tv/oauth2/authorize?client_id=kimne78kx3ncx6brogo4mv6wki5h1ko&redirect_uri=http://localhost:8000/&response_type=token&scope=channel:read:redemptions+chat:read" class="btn" style="padding: 8px; justify-content: center; font-size: 0.85rem; background: rgba(145, 70, 255, 0.25); border-color: #9146FF; color: #E0C3FF; text-decoration: none; margin-top: 4px;">
+              🔑 一鍵授權 Twitch 免打字點數
+            </a>
           </div>
 
           <div class="setting-group" style="margin-top: 6px;">
