@@ -1,8 +1,7 @@
 /**
  * Main Application Controller for Apex Legends OBS Plugin
  * Manages Dual Horizontal Carousels (Hero Reel & Weapon Reel),
- * Audio, Hotkeys, Filters, Twitch Integration & LocalStorage persistence.
- * Cleaned: Zero-Setup Twitch Out-of-the-Box Connection.
+ * Audio, Hotkeys, Filters, Twitch Integration & Cross-Window Real-Time Broadcast Sync.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -29,6 +28,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Load state from localStorage
   loadSavedState();
+
+  // --- Real-Time Cross-Window Synchronization (BroadcastChannel) ---
+  const syncChannel = new BroadcastChannel('apex_roulette_sync');
+
+  syncChannel.onmessage = (event) => {
+    const data = event.data;
+    if (!data) return;
+
+    if (data.type === 'SPIN_BOTH') {
+      executeSpinBoth(data.legendIndex, data.weaponIndex, false);
+    } else if (data.type === 'SPIN_LEGEND') {
+      executeSpinLegend(data.legendIndex, false);
+    } else if (data.type === 'SPIN_WEAPON') {
+      executeSpinWeapon(data.weaponIndex, false);
+    } else if (data.type === 'SHOW_RESULT') {
+      showResultBannerDirect(data.legendName, data.weaponName);
+    } else if (data.type === 'HIDE_RESULT') {
+      hideResultBanner();
+    }
+  };
 
   // Initialize Canvas Elements
   const heroCanvas = document.getElementById('heroReelCanvas');
@@ -222,47 +241,87 @@ document.addEventListener('DOMContentLoaded', () => {
     return state.activeWeapons.length > 0 ? state.activeWeapons : APEX_DATA.weapons;
   }
 
-  // --- Spin Triggers ---
+  // --- Synchronized Spin Triggers ---
 
   function spinBoth() {
+    const availableLegends = getFilteredLegends();
+    const availableWeapons = getFilteredWeapons();
+
+    const legendIndex = Math.floor(Math.random() * availableLegends.length);
+    const weaponIndex = Math.floor(Math.random() * availableWeapons.length);
+
+    executeSpinBoth(legendIndex, weaponIndex, true);
+  }
+
+  function executeSpinBoth(legendIndex, weaponIndex, isInitiator = true) {
     if ((heroReel && heroReel.isSpinning) || (weaponReel && weaponReel.isSpinning)) return;
 
     heroDone = false;
     weaponDone = false;
     hideResultBanner();
 
+    if (isInitiator) {
+      syncChannel.postMessage({
+        type: 'SPIN_BOTH',
+        legendIndex,
+        weaponIndex
+      });
+    }
+
     if (heroReel) {
       heroReel.duration = state.spinDuration;
       heroReel.setItems(getFilteredLegends());
-      heroReel.spin();
+      heroReel.spin(legendIndex);
     }
 
     if (weaponReel) {
       weaponReel.duration = state.spinDuration + 600;
       weaponReel.setItems(getFilteredWeapons());
-      weaponReel.spin();
+      weaponReel.spin(weaponIndex);
     }
   }
 
   function spinLegendOnly() {
+    const availableLegends = getFilteredLegends();
+    const legendIndex = Math.floor(Math.random() * availableLegends.length);
+    executeSpinLegend(legendIndex, true);
+  }
+
+  function executeSpinLegend(legendIndex, isInitiator = true) {
     if (heroReel && !heroReel.isSpinning) {
       heroDone = false;
       weaponDone = true;
       hideResultBanner();
+
+      if (isInitiator) {
+        syncChannel.postMessage({ type: 'SPIN_LEGEND', legendIndex });
+      }
+
       heroReel.duration = state.spinDuration;
       heroReel.setItems(getFilteredLegends());
-      heroReel.spin();
+      heroReel.spin(legendIndex);
     }
   }
 
   function spinWeaponOnly() {
+    const availableWeapons = getFilteredWeapons();
+    const weaponIndex = Math.floor(Math.random() * availableWeapons.length);
+    executeSpinWeapon(weaponIndex, true);
+  }
+
+  function executeSpinWeapon(weaponIndex, isInitiator = true) {
     if (weaponReel && !weaponReel.isSpinning) {
       heroDone = true;
       weaponDone = false;
       hideResultBanner();
+
+      if (isInitiator) {
+        syncChannel.postMessage({ type: 'SPIN_WEAPON', weaponIndex });
+      }
+
       weaponReel.duration = state.spinDuration;
       weaponReel.setItems(getFilteredWeapons());
-      weaponReel.spin();
+      weaponReel.spin(weaponIndex);
     }
   }
 
@@ -274,17 +333,30 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function showResultBanner() {
+    let legendName = state.lastSelectedLegend ? state.lastSelectedLegend.name : '';
+    let weaponName = state.lastSelectedWeapon ? state.lastSelectedWeapon.name : '';
+
+    showResultBannerDirect(legendName, weaponName);
+
+    syncChannel.postMessage({
+      type: 'SHOW_RESULT',
+      legendName,
+      weaponName
+    });
+  }
+
+  function showResultBannerDirect(legendName, weaponName) {
     const banner = document.getElementById('resultBanner');
     const resultText = document.getElementById('resultCombination');
 
     if (banner && resultText) {
       let text = '';
-      if (state.lastSelectedLegend && state.lastSelectedWeapon) {
-        text = `【${state.lastSelectedLegend.name}】 + 【${state.lastSelectedWeapon.name}】`;
-      } else if (state.lastSelectedLegend) {
-        text = `英雄：${state.lastSelectedLegend.name}`;
-      } else if (state.lastSelectedWeapon) {
-        text = `槍械：${state.lastSelectedWeapon.name}`;
+      if (legendName && weaponName) {
+        text = `【${legendName}】 + 【${weaponName}】`;
+      } else if (legendName) {
+        text = `英雄：${legendName}`;
+      } else if (weaponName) {
+        text = `槍械：${weaponName}`;
       }
       resultText.innerText = text;
       banner.classList.add('active');
