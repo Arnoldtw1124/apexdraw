@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apex Legends 隨機英雄與槍械輪盤 - OBS Overlay & Plugin</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Particle Confetti Canvas -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <div class="app-container">
+    <!-- Header Navigation -->
+    <header class="app-header">
+      <div class="brand-logo">
+        <div class="apex-icon"></div>
+        <h1>APEX HERO & WEAPON RANDOMIZER</h1>
+      </div>
+      <div class="header-controls">
+        <button id="obsGuideBtn" class="btn">
+          <span>📖 OBS 設定指南</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Left: Wheel & Horizontal Reel Section -->
+      <section class="wheels-section">
+
+        <!-- Result Combination Banner -->
+        <div id="resultBanner" class="result-banner">
+          <div class="result-title">🎯 英雄與槍械隨機組合 🎯</div>
+          <div id="resultCombination" class="result-combination">請點擊下方旋轉按鈕！</div>
+        </div>
+
+        <div class="wheels-container">
+          <!-- Top: Horizontal Hero Selector Reel -->
+          <div class="hero-reel-card">
+            <div class="wheel-title">⚡ 英雄卡片選擇器 (HERO SELECTOR - LEFT TO RIGHT REEL)</div>
+            <div class="hero-reel-wrapper">
+              <canvas id="heroReelCanvas"></canvas>
+            </div>
+          </div>
+
+          <!-- Bottom: Weapon Wheel -->
+          <div class="weapon-wheel-card">
+            <div class="wheel-title">⚔️ 槍械輪盤 (WEAPON ROULETTE)</div>
+            <div class="wheel-canvas-wrapper">
+              <canvas id="weaponWheelCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Spin Action Bar -->
+        <div class="spin-action-bar">
+          <button id="spinBothBtn" class="btn btn-primary btn-large-spin">
+            🔥 一鍵連動抽英雄與槍械 (SPIN BOTH) 🔥
+          </button>
+          <div class="spin-buttons-group">
+            <button id="spinLegendBtn" class="btn">單獨抽英雄 (Spin Hero)</button>
+            <button id="spinWeaponBtn" class="btn">單獨抽槍械 (Spin Weapon)</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Control & Editor Sidebar -->
+      <aside class="sidebar-panel">
+        <div class="tab-nav">
+          <button class="tab-btn active" data-tab="tabLegends">英雄庫</button>
+          <button class="tab-btn" data-tab="tabWeapons">槍械庫</button>
+          <button class="tab-btn" data-tab="tabSettings">設定</button>
+        </div>
+
+        <!-- Tab 1: Legends Editor -->
+        <div id="tabLegends" class="tab-content active">
+          <div class="item-filter-tools">
+            <button id="selectAllLegendsBtn" class="btn">全選</button>
+            <button id="deselectAllLegendsBtn" class="btn">全不選</button>
+          </div>
+          <div id="legendListEditor" class="item-list-container">
+            <!-- Dynamic checkboxes injected by JS -->
+          </div>
+        </div>
+
+        <!-- Tab 2: Weapons Editor -->
+        <div id="tabWeapons" class="tab-content">
+          <div class="item-filter-tools">
+            <button id="selectAllWeaponsBtn" class="btn">全選</button>
+            <button id="deselectAllWeaponsBtn" class="btn">全不選</button>
+          </div>
+          <div id="weaponListEditor" class="item-list-container">
+            <!-- Dynamic checkboxes injected by JS -->
+          </div>
+        </div>
+
+        <!-- Tab 3: Settings -->
+        <div id="tabSettings" class="tab-content">
+          <div class="setting-group">
+            <label for="volumeSlider">🔊 音效音量</label>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.5">
+          </div>
+
+          <div class="setting-group">
+            <label for="durationSlider">⏱️ 旋轉時間 (毫秒)</label>
+            <input type="range" id="durationSlider" min="2000" max="8000" step="500" value="4500">
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- OBS Guide Modal -->
+  <div id="obsGuideModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>OBS Studio 插件整合教學</h2>
+        <button id="closeModalBtn" class="btn">✖ 關閉</button>
+      </div>
+      <div class="modal-body">
+        <p>這款輪盤可完美整合至 OBS Studio 做為實況圖層或控制面板：</p>
+        <ol>
+          <li>
+            <strong>自訂英雄圖片 (PNG Image Import)：</strong>
+            <br>
+            您可將英雄圖片放置於 <code>images/</code> 資料夾中（檔名範例：<code>wraith.png</code>、<code>octane.png</code>、<code>pathfinder.png</code> 等）。系統會自動讀取並顯示在角色卡片上！若尚未放入 PNG 檔，系統會以質感徽章視覺呈現。
+          </li>
+          <li>
+            <strong>設定為 OBS 實況圖層 (Overlay Mode)：</strong>
+            <br>
+            在 OBS「來源」視窗點擊 <code>+</code> &rarr; 選擇 <code>瀏覽器 (Browser)</code>。
+            勾選「本機檔案」選擇 <code>index.html</code>，網址最後加上 <code>?mode=overlay</code>（即可啟用完全透明背景圖層）。
+          </li>
+          <li>
+            <strong>設定為 OBS 控制面板 (Custom Dock)：</strong>
+            <br>
+            在 OBS 選單點擊 <code>檢視</code> &rarr; <code>動態分頁 / Docks</code> &rarr; <code>自訂瀏覽器 Dock...</code>。
+            Dock 名稱填寫「Apex輪盤」，網址選擇本地 <code>index.html</code> 路徑即可！
+          </li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Scripts -->
+  <script src="js/apex_data.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/hero_reel.js"></script>
+  <script src="js/wheel.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

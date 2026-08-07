@@ -1,0 +1,109 @@
+/**
+ * Apex Legends Dataset
+ * Fully updated with user's specific Chinese Legend translations.
+ */
+
+const APEX_DATA = {
+  classes: {
+    assault: { name: '突擊 (Assault)', color: '#FF4A4A', icon: '⚔️' },
+    skirmisher: { name: '游擊 (Skirmisher)', color: '#4AF2FF', icon: '⚡' },
+    recon: { name: '偵察 (Recon)', color: '#FFD44A', icon: '🎯' },
+    support: { name: '支援 (Support)', color: '#4AFF85', icon: '🛡️' },
+    controller: { name: '控場 (Controller)', color: '#B84AFF', icon: '🔒' }
+  },
+
+  legends: [
+    // Assault (突擊)
+    { id: 'bangalore', fileKey: 'Bangalore', name: '邦加羅爾', englishName: 'Bangalore', class: 'assault', color: '#E63946' },
+    { id: 'fuse', fileKey: 'Fuse', name: '轟哥', englishName: 'Fuse', class: 'assault', color: '#D90429' },
+    { id: 'ash', fileKey: 'Ash', name: '艾許', englishName: 'Ash', class: 'assault', color: '#9D0208' },
+    { id: 'mad_maggie', fileKey: 'MadMaggie', name: '瘋狂瑪吉', englishName: 'Mad Maggie', class: 'assault', color: '#DC2626' },
+    { id: 'ballistic', fileKey: 'Ballistic', name: '彈道', englishName: 'Ballistic', class: 'assault', color: '#B91C1C' },
+
+    // Skirmisher (游擊)
+    { id: 'pathfinder', fileKey: 'Pathfinder', name: '探路者', englishName: 'Pathfinder', class: 'skirmisher', color: '#00B4D8' },
+    { id: 'wraith', fileKey: 'Wraith', name: '惡靈', englishName: 'Wraith', class: 'skirmisher', color: '#0077B6' },
+    { id: 'mirage', fileKey: 'Mirage', name: '幻象', englishName: 'Mirage', class: 'skirmisher', color: '#90E0EF' },
+    { id: 'octane', fileKey: 'Octane', name: '辛烷', englishName: 'Octane', class: 'skirmisher', color: '#10B981' },
+    { id: 'horizon', fileKey: 'Horizon', name: '天際線', englishName: 'Horizon', class: 'skirmisher', color: '#0284C7' },
+    { id: 'valkyrie', fileKey: 'Valkyrie', name: '瓦爾基里', englishName: 'Valkyrie', class: 'skirmisher', color: '#2563EB' },
+    { id: 'revenant', fileKey: 'Revenant', name: '亡靈', englishName: 'Revenant', class: 'skirmisher', color: '#4F46E5' },
+    { id: 'alter', fileKey: 'Alter', name: '變幻', englishName: 'Alter', class: 'skirmisher', color: '#EC4899' },
+    { id: 'axle', fileKey: 'Axle', name: '艾瑟兒', englishName: 'Axle', class: 'skirmisher', color: '#10B981' },
+
+    // Recon (偵察)
+    { id: 'bloodhound', fileKey: 'Bloodhound', name: '尋血犬', englishName: 'Bloodhound', class: 'recon', color: '#F59E0B' },
+    { id: 'crypto', fileKey: 'Crypto', name: '暗碼士', englishName: 'Crypto', class: 'recon', color: '#D97706' },
+    { id: 'seer', fileKey: 'Seer', name: '席爾', englishName: 'Seer', class: 'recon', color: '#B45309' },
+    { id: 'vantage', fileKey: 'Vantage', name: '萬塔捷', englishName: 'Vantage', class: 'recon', color: '#EAB308' },
+    { id: 'sparrow', fileKey: 'sparrow', name: '雀影', englishName: 'Sparrow', class: 'recon', color: '#FFD44A' },
+
+    // Support (支援)
+    { id: 'gibraltar', fileKey: 'Gibraltar', name: '直布羅陀', englishName: 'Gibraltar', class: 'support', color: '#10B981' },
+    { id: 'lifeline', fileKey: 'Lifeline', name: '生命線', englishName: 'Lifeline', class: 'support', color: '#059669' },
+    { id: 'loba', fileKey: 'Loba', name: '蘿芭', englishName: 'Loba', class: 'support', color: '#047857' },
+    { id: 'newcastle', fileKey: 'Newcastle', name: '紐卡索', englishName: 'Newcastle', class: 'support', color: '#065F46' },
+    { id: 'conduit', fileKey: 'Conduit', name: '導管', englishName: 'Conduit', class: 'support', color: '#34D399' },
+
+    // Controller (控場)
+    { id: 'caustic', fileKey: 'Caustic', name: '腐蝕', englishName: 'Caustic', class: 'controller', color: '#8B5CF6' },
+    { id: 'wattson', fileKey: 'Wattson', name: '華森', englishName: 'Wattson', class: 'controller', color: '#7C3AED' },
+    { id: 'rampart', fileKey: 'Rampart', name: '蕾帕特', englishName: 'Rampart', class: 'controller', color: '#6D28D9' },
+    { id: 'catalyst', fileKey: 'Catalyst', name: '催化劑', englishName: 'Catalyst', class: 'controller', color: '#5B21B6' }
+  ],
+
+  weaponCategories: {
+    ar: { name: '突擊步槍 (AR)', color: '#FF5722' },
+    smg: { name: '衝鋒槍 (SMG)', color: '#00BCD4' },
+    lmg: { name: '輕機槍 (LMG)', color: '#8BC34A' },
+    marksman: { name: '神射手步槍 (Marksman)', color: '#FFC107' },
+    sniper: { name: '狙擊槍 (Sniper)', color: '#9C27B0' },
+    shotgun: { name: '霰彈槍 (Shotgun)', color: '#F44336' },
+    pistol: { name: '手槍 (Pistol)', color: '#FF9800' }
+  },
+
+  weapons: [
+    // AR
+    { id: 'r301', name: 'R-301 步槍', category: 'ar', color: '#FF6B6B' },
+    { id: 'flatline', name: 'VK-47 平行步槍', category: 'ar', color: '#EE5253' },
+    { id: 'hemlok', name: '赫姆洛克 爆發步槍', category: 'ar', color: '#FF7979' },
+    { id: 'havoc', name: '哈沃克 步槍', category: 'ar', color: '#FF5252' },
+    { id: 'nemesis', name: '死神 爆發步槍', category: 'ar', color: '#E84118' },
+
+    // SMG
+    { id: 'r99', name: 'R-99 衝鋒槍', category: 'smg', color: '#48DBFB' },
+    { id: 'alternator', name: '發電機 衝鋒槍', category: 'smg', color: '#0ABDE3' },
+    { id: 'car', name: 'C.A.R. 衝鋒槍', category: 'smg', color: '#00D2D3' },
+    { id: 'volt', name: '伏特 衝鋒槍', category: 'smg', color: '#54A0FF' },
+    { id: 'prowler', name: '獵輪衝鋒槍', category: 'smg', color: '#2E86DE' },
+
+    // LMG
+    { id: 'spitfire', name: 'M600 噴火槍', category: 'lmg', color: '#1DD1A1' },
+    { id: 'devotion', name: '專注輕機槍', category: 'lmg', color: '#10AC84' },
+    { id: 'lstar', name: 'L-STAR 能量槍', category: 'lmg', color: '#2ED573' },
+    { id: 'rampage', name: '狂暴 輕機槍', category: 'lmg', color: '#26DE81' },
+
+    // Marksman
+    { id: 'g7', name: 'G7 偵察槍', category: 'marksman', color: '#FECA57' },
+    { id: 'triple_take', name: '三重擊步槍', category: 'marksman', color: '#FF9F43' },
+    { id: 'repeater3030', name: '30-30 連發步槍', category: 'marksman', color: '#F39C12' },
+    { id: 'bocek', name: '博切克 複合弓', category: 'marksman', color: '#E67E22' },
+
+    // Sniper
+    { id: 'sentinel', name: '哨兵 狙擊槍', category: 'sniper', color: '#9B59B6' },
+    { id: 'longbow', name: '長弓 精確射手步槍', category: 'sniper', color: '#8E44AD' },
+    { id: 'charge_rifle', name: '充能步槍', category: 'sniper', color: '#A55EEA' },
+    { id: 'kraber', name: '克萊柏 .50 狙擊槍', category: 'sniper', color: '#8854D0' },
+
+    // Shotgun
+    { id: 'peacekeeper', name: '和平捍衛者 霰彈槍', category: 'shotgun', color: '#FF4757' },
+    { id: 'mastiff', name: '獒犬 霰彈槍', category: 'shotgun', color: '#FF6B81' },
+    { id: 'eva8', name: 'EVA-8 自動霰彈槍', category: 'shotgun', color: '#ED4C67' },
+    { id: 'mozambique', name: '莫三比克 霰彈手槍', category: 'shotgun', color: '#B83280' },
+
+    // Pistol
+    { id: 'wingman', name: '小幫手 (Wingman)', category: 'pistol', color: '#FFA502' },
+    { id: 're45', name: 'RE-45 自動手槍', category: 'pistol', color: '#FF7F50' },
+    { id: 'p2020', name: 'P2020 手槍', category: 'pistol', color: '#E15F41' }
+  ]
+};

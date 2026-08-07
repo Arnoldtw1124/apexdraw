@@ -1,0 +1,5 @@
+# Ignore generated zip artifacts and local logs
+*.zip
+.system_generated/
+.DS_Store
+Thumbs.db

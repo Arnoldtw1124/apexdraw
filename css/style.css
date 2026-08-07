@@ -1,0 +1,482 @@
+/* ==========================================================================
+   Apex Legends OBS Visual Roulette Style Sheet
+   Includes Horizontal Hero Character Carousel & Weapon Wheel
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Noto+Sans+TC:wght@500;700;900&display=swap');
+
+:root {
+  --apex-red: #ff4655;
+  --apex-red-hover: #fa233b;
+  --apex-dark: #0f1015;
+  --apex-panel: rgba(22, 25, 35, 0.9);
+  --apex-card: rgba(30, 34, 48, 0.8);
+  --apex-border: rgba(255, 70, 85, 0.3);
+  --text-main: #ffffff;
+  --text-sub: #9ca3af;
+  --accent-cyan: #4af2ff;
+  --accent-gold: #ffd44a;
+  --radius-lg: 16px;
+  --radius-md: 10px;
+  --shadow-glow: 0 0 25px rgba(255, 70, 85, 0.4);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body {
+  font-family: 'Noto Sans TC', 'Orbitron', system-ui, sans-serif;
+  background-color: var(--apex-dark);
+  background-image: 
+    radial-gradient(circle at 15% 20%, rgba(255, 70, 85, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(74, 242, 255, 0.08) 0%, transparent 40%);
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* OBS Overlay Mode (Transparent background) */
+body.overlay-mode {
+  background: transparent !important;
+}
+
+body.overlay-mode .app-header,
+body.overlay-mode .control-dock-toggle,
+body.overlay-mode .sidebar-panel {
+  display: none !important;
+}
+
+body.overlay-mode .wheels-container {
+  padding: 10px;
+}
+
+/* Main Container Layout */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* App Header */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 28px;
+  background: var(--apex-panel);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--apex-border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-logo .apex-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--apex-red);
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+}
+
+.brand-logo h1 {
+  font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #ffffff 0%, var(--apex-red) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header-controls {
+  display: flex;
+  gap: 12px;
+}
+
+/* Buttons */
+.btn {
+  background: var(--apex-card);
+  color: var(--text-main);
+  border: 1px solid var(--apex-border);
+  padding: 10px 18px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  background: rgba(255, 70, 85, 0.2);
+  border-color: var(--apex-red);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 70, 85, 0.3);
+}
+
+.btn-primary {
+  background: var(--apex-red);
+  border-color: var(--apex-red);
+  color: #ffffff;
+  font-size: 1.1rem;
+  padding: 12px 28px;
+  letter-spacing: 1px;
+}
+
+.btn-primary:hover {
+  background: var(--apex-red-hover);
+  box-shadow: var(--shadow-glow);
+}
+
+.btn-large-spin {
+  font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 900;
+  padding: 16px 44px;
+  border-radius: 40px;
+  background: linear-gradient(135deg, #ff4655 0%, #ff1e38 100%);
+  box-shadow: 0 0 30px rgba(255, 70, 85, 0.5);
+  animation: pulse-glow 2s infinite alternate;
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 20px rgba(255, 70, 85, 0.4); }
+  100% { box-shadow: 0 0 40px rgba(255, 70, 85, 0.8), 0 0 10px #ffffff; }
+}
+
+/* Main Body Layout */
+.main-content {
+  display: flex;
+  flex: 1;
+  gap: 24px;
+  padding: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.wheels-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.wheels-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+/* Hero Horizontal Reel Container Card */
+.hero-reel-card {
+  width: 100%;
+  background: var(--apex-panel);
+  border: 1px solid var(--apex-border);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.hero-reel-wrapper {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Weapon Wheel Card */
+.weapon-wheel-card {
+  background: var(--apex-panel);
+  border: 1px solid var(--apex-border);
+  border-radius: var(--radius-lg);
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.wheel-title {
+  font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--accent-cyan);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wheel-canvas-wrapper {
+  position: relative;
+  width: 320px;
+  height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Spin Controls Action Bar */
+.spin-action-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-top: 5px;
+}
+
+.spin-buttons-group {
+  display: flex;
+  gap: 16px;
+}
+
+/* Winning Result Banner */
+.result-banner {
+  width: 100%;
+  background: linear-gradient(90deg, rgba(255, 70, 85, 0.1) 0%, rgba(255, 70, 85, 0.25) 50%, rgba(255, 70, 85, 0.1) 100%);
+  border: 2px solid var(--apex-red);
+  border-radius: var(--radius-lg);
+  padding: 16px 30px;
+  text-align: center;
+  box-shadow: var(--shadow-glow);
+  display: none;
+  animation: result-slide-in 0.4s ease;
+}
+
+.result-banner.active {
+  display: block;
+}
+
+@keyframes result-slide-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.result-title {
+  font-size: 0.85rem;
+  color: var(--accent-gold);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.result-combination {
+  font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.8), 0 0 20px var(--apex-red);
+}
+
+/* Right Sidebar Editor & Controls */
+.sidebar-panel {
+  width: 400px;
+  background: var(--apex-panel);
+  border: 1px solid var(--apex-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-height: calc(100vh - 110px);
+  overflow-y: auto;
+}
+
+.sidebar-panel::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar-panel::-webkit-scrollbar-thumb {
+  background: var(--apex-red);
+  border-radius: 3px;
+}
+
+.tab-nav {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  color: var(--text-sub);
+  font-weight: 700;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  color: var(--apex-red);
+  border-bottom-color: var(--apex-red);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Settings Form Controls */
+.setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.setting-group label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-sub);
+}
+
+.setting-group input[type="range"],
+.setting-group select {
+  background: var(--apex-card);
+  border: 1px solid var(--apex-border);
+  color: var(--text-main);
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  outline: none;
+}
+
+/* Item List Checkboxes */
+.item-filter-tools {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.item-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.item-checkbox-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border-left: 4px solid var(--apex-red);
+}
+
+.item-checkbox-row label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+.item-checkbox-row input[type="checkbox"] {
+  accent-color: var(--apex-red);
+  width: 16px;
+  height: 16px;
+}
+
+/* Confetti Particle Canvas overlay */
+#confettiCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* OBS Setup Guide Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-box {
+  background: var(--apex-panel);
+  border: 2px solid var(--apex-red);
+  border-radius: var(--radius-lg);
+  padding: 30px;
+  max-width: 650px;
+  width: 90%;
+  box-shadow: 0 0 40px rgba(255, 70, 85, 0.4);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-header h2 {
+  color: var(--apex-red);
+  font-family: 'Orbitron', sans-serif;
+}
+
+.modal-body {
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.modal-body code {
+  background: rgba(255, 70, 85, 0.15);
+  color: var(--accent-gold);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.modal-body ol {
+  padding-left: 20px;
+  margin: 15px 0;
+}
+
+.modal-body li {
+  margin-bottom: 10px;
+}
