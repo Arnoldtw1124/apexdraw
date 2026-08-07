@@ -2,7 +2,7 @@
  * Horizontal Weapon Selection Reel Engine
  * Matches the exact AAA horizontal carousel feel of the Hero Selector.
  * 
- * Features automatic image loading with fallback badge rendering so cards are NEVER blank.
+ * Efficient targeted image loading (0 network throttling).
  */
 
 class WeaponReel {
@@ -36,15 +36,13 @@ class WeaponReel {
 
     this.resizeCanvas();
     window.addEventListener('resize', () => this.resizeCanvas());
-    
-    // Delayed resize check to ensure non-zero dimensions after CSS layout reflow
+
     setTimeout(() => this.resizeCanvas(), 50);
     setTimeout(() => this.resizeCanvas(), 300);
   }
 
   /**
-   * Preload weapon images matching exact filenames in image/ folder
-   * Handles WEBP, AVIF, PNG, JPG formats seamlessly!
+   * Efficient targeted image preloading
    */
   preloadImages(forceReload = false) {
     if (!this.items) return;
@@ -52,8 +50,6 @@ class WeaponReel {
     if (forceReload) {
       this.imageCache = {};
     }
-
-    const timestamp = Date.now();
 
     this.items.forEach(item => {
       if (!item.id) return;
@@ -64,29 +60,17 @@ class WeaponReel {
       }
 
       const fileKey = item.fileKey || item.id;
-      const altKey = item.altFileKey || fileKey;
-      const slug = item.id.replace(/_/g, '-');
-      const formats = ['.webp', '.avif', '.png', '.jpg'];
-      const folders = ['image', 'images'];
 
-      const fileNames = [
-        `${fileKey}`,
-        `${altKey}`,
-        `apex-grid-tile-weapons-${fileKey}`,
-        `apex-grid-tile-weapons-${slug}`,
-        `weapon-${fileKey}`,
-        `${slug}`,
-        `${item.id}`
+      // Targeted file paths matching actual user files in image/ folder
+      const candidates = [
+        `image/${fileKey}.webp`,
+        `image/${fileKey}.avif`,
+        `image/${fileKey}.png`,
+        `image/apex-grid-tile-weapons-${fileKey}.avif`,
+        `image/apex-grid-tile-weapons-${fileKey}.webp`,
+        `images/${fileKey}.webp`,
+        `images/${fileKey}.png`
       ];
-
-      const candidates = [];
-      folders.forEach(folder => {
-        fileNames.forEach(fn => {
-          formats.forEach(ext => {
-            candidates.push(`${folder}/${fn}${ext}?t=${timestamp}`);
-          });
-        });
-      });
 
       let candidateIndex = 0;
 

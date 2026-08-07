@@ -4,7 +4,7 @@
  * smooth scrolling physics, tick audio triggers, and center target alignment.
  * 
  * Features Aspect-Correct Cover Cropping to prevent any image stretching/distortion.
- * Hero class tag bar removed per user request for a cleaner look.
+ * Streamlined preloader to prevent HTTP connection throttling.
  */
 
 class HeroReel {
@@ -39,7 +39,6 @@ class HeroReel {
     this.resizeCanvas();
     window.addEventListener('resize', () => this.resizeCanvas());
 
-    // Delayed resize check to ensure non-zero dimensions after CSS layout reflow
     setTimeout(() => this.resizeCanvas(), 50);
     setTimeout(() => this.resizeCanvas(), 300);
   }
@@ -51,8 +50,6 @@ class HeroReel {
       this.imageCache = {};
     }
 
-    const timestamp = Date.now();
-
     this.items.forEach(item => {
       if (!item.id) return;
 
@@ -63,25 +60,15 @@ class HeroReel {
 
       const fileKey = item.fileKey || item.id;
       const slug = item.id.replace(/_/g, '-');
-      const formats = ['.avif', '.webp', '.png', '.jpg'];
-      const folders = ['image', 'images'];
 
-      const fileNames = [
-        `apex-grid-tile-legends-${fileKey}`,
-        `apex-grid-tile-legends-${slug}`,
-        `apex-grid-tile-legends-${item.id}`,
-        `${fileKey}`,
-        `${item.id}`
+      const candidates = [
+        `image/apex-grid-tile-legends-${fileKey}.avif`,
+        `image/apex-grid-tile-legends-${slug}.avif`,
+        `image/apex-grid-tile-legends-${fileKey}.webp`,
+        `image/apex-grid-tile-legends-${fileKey}.png`,
+        `image/${fileKey}.avif`,
+        `images/apex-grid-tile-legends-${fileKey}.avif`
       ];
-
-      const candidates = [];
-      folders.forEach(folder => {
-        fileNames.forEach(fn => {
-          formats.forEach(ext => {
-            candidates.push(`${folder}/${fn}${ext}?t=${timestamp}`);
-          });
-        });
-      });
 
       let candidateIndex = 0;
 
