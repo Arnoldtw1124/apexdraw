@@ -86,7 +86,7 @@ body {
   height: auto !important;
   min-height: auto !important;
   max-height: 200px;
-  background: transparent;
+  background: rgba(10, 12, 18, 0.85);
   border: 2px solid #1E3A8A;
   border-radius: var(--radius-lg);
   padding: 8px 12px;
@@ -127,7 +127,7 @@ body {
 /* Each reel card - full width vertical block */
 .hero-reel-card {
   width: 100%;
-  background: transparent;
+  background: rgba(15, 17, 24, 0.85);
   border: 2px solid #1E3A8A;
   border-radius: var(--radius-lg);
   padding: 6px 8px;
@@ -267,7 +267,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(30, 58, 138, 0.6);
   padding: 7px 10px;
   border-radius: var(--radius-md);
