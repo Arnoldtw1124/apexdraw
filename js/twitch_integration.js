@@ -93,7 +93,7 @@ class TwitchIntegration {
         this.isConnected = true;
         this.updateStatus('connected', `已成功連線至 Twitch 頻道: #${this.channel}`);
         if (this.onTwitchNotice) {
-          this.onTwitchNotice(`成功監聽 Twitch 頻道 #${this.channel} 的忠誠點數與指令！`);
+          this.onTwitchNotice(`成功連結 Twitch 頻道 #${this.channel} 的忠誠點數與指令！`);
         }
         return;
       }
