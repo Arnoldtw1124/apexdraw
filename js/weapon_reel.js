@@ -2,8 +2,28 @@
  * Horizontal Weapon Selection Reel Engine
  * Matches the exact AAA horizontal carousel feel of the Hero Selector.
  * 
- * Efficient targeted image loading (0 network throttling).
+ * Features 100% Cross-Browser Safe Rounded Rect Drawing (OBS CEF & older Chromium compatible).
  */
+
+function safeRoundRect(ctx, x, y, width, height, radius) {
+  if (typeof ctx.roundRect === 'function') {
+    ctx.roundRect(x, y, width, height, radius);
+  } else {
+    let r = typeof radius === 'number' ? radius : 8;
+    r = Math.min(r, width / 2, height / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + width - r, y);
+    ctx.arcTo(x + width, y, x + width, y + r, r);
+    ctx.lineTo(x + width, y + height - r);
+    ctx.arcTo(x + width, y + height, x + width - r, y + height, r);
+    ctx.lineTo(x + r, y + height);
+    ctx.arcTo(x, y + height, x, y + height - r, r);
+    ctx.lineTo(x, y + r);
+    ctx.arcTo(x, y, x + r, y, r);
+    ctx.closePath();
+  }
+}
 
 class WeaponReel {
   constructor(canvasElement, options = {}) {
@@ -42,7 +62,7 @@ class WeaponReel {
   }
 
   /**
-   * Efficient targeted image preloading
+   * Targeted image preloading for weapon images
    */
   preloadImages(forceReload = false) {
     if (!this.items) return;
@@ -61,7 +81,6 @@ class WeaponReel {
 
       const fileKey = item.fileKey || item.id;
 
-      // Targeted file paths matching actual user files in image/ folder
       const candidates = [
         `image/${fileKey}.webp`,
         `image/${fileKey}.avif`,
@@ -259,12 +278,12 @@ class WeaponReel {
 
     // Card background
     ctx.beginPath();
-    ctx.roundRect(x, y, w, h, 14 * dpr);
+    safeRoundRect(ctx, x, y, w, h, 14 * dpr);
     ctx.fillStyle = 'rgba(20, 23, 32, 0.96)';
     ctx.fill();
 
     // Weapon category accent border
-    const catData = APEX_DATA.weaponCategories[item.category] || {};
+    const catData = (APEX_DATA && APEX_DATA.weaponCategories) ? (APEX_DATA.weaponCategories[item.category] || {}) : {};
     const themeColor = item.color || catData.color || '#00BCD4';
 
     ctx.lineWidth = isWinner ? 4 * dpr : 2 * dpr;
@@ -298,7 +317,7 @@ class WeaponReel {
 
       ctx.save();
       ctx.beginPath();
-      ctx.roundRect(destX, avatarY, targetW, targetH, 10 * dpr);
+      safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
       ctx.clip();
 
       ctx.drawImage(imgObj, sx, sy, sw, sh, destX, avatarY, targetW, targetH);
@@ -314,7 +333,7 @@ class WeaponReel {
       // Stylized Apex Weapon Badge Graphics (Fallback)
       ctx.save();
       ctx.beginPath();
-      ctx.roundRect(destX, avatarY, targetW, targetH, 10 * dpr);
+      safeRoundRect(ctx, destX, avatarY, targetW, targetH, 10 * dpr);
       ctx.fillStyle = themeColor;
       ctx.globalAlpha = 0.15;
       ctx.fill();
@@ -356,7 +375,7 @@ class WeaponReel {
     ctx.save();
 
     ctx.beginPath();
-    ctx.roundRect(frameX, frameY, frameW, frameH, 16 * dpr);
+    safeRoundRect(ctx, frameX, frameY, frameW, frameH, 16 * dpr);
     ctx.lineWidth = 3.5 * dpr;
     ctx.strokeStyle = '#00BCD4'; // Cyan neon accent for weapon reticle
     ctx.shadowColor = '#00BCD4';
