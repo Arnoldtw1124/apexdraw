@@ -2,7 +2,8 @@
  * Horizontal Weapon Selection Reel Engine
  * Matches the exact AAA horizontal carousel feel of the Hero Selector.
  * 
- * Features 100% Cross-Browser Safe Rounded Rect Drawing & Error-Proof Canvas Rendering.
+ * Features 3-Card Wide Layout (cardWidth = 260px) for maximum weapon image clarity,
+ * 100% Cross-Browser Safe Rounded Rect Drawing & Error-Proof Canvas Rendering.
  */
 
 if (typeof window.safeRoundRect !== 'function') {
@@ -41,10 +42,10 @@ class WeaponReel {
     this.onSpinEnd = options.onSpinEnd || null;
     this.onTick = options.onTick || null;
 
-    // Card dimensions matching Hero Reel
-    this.cardWidth = 155;
+    // 3-Card Wide Layout (260px wide cards so guns look huge and wide!)
+    this.cardWidth = 260;
     this.cardHeight = 210;
-    this.cardGap = 18;
+    this.cardGap = 24;
     this.totalCardStep = this.cardWidth + this.cardGap;
 
     // Scroll state
@@ -361,7 +362,7 @@ class WeaponReel {
 
     // Weapon Name Footer
     ctx.fillStyle = isWinner ? '#FFD44A' : '#FFFFFF';
-    ctx.font = `bold ${14 * dpr}px "Noto Sans TC", sans-serif`;
+    ctx.font = `bold ${15 * dpr}px "Noto Sans TC", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.shadowColor = 'rgba(0,0,0,0.9)';
