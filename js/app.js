@@ -104,6 +104,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function showSaveToast() {
+    const toast = document.getElementById('twitchSaveToast');
+    if (toast) {
+      toast.style.display = 'block';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 3500);
+    }
+  }
+
   // --- State Persistence & Filters ---
 
   function loadSavedState() {
@@ -469,12 +479,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const channel = twitchChannelInput.value.trim();
       state.twitchChannel = channel;
       state.twitchReward = twitchRewardInput.value.trim() || '抽輪盤';
+      state.twitchEnableCmds = enableChatCmdsCheck ? enableChatCmdsCheck.checked : true;
       saveState();
 
       if (twitchIntegration) {
         twitchIntegration.rewardName = state.twitchReward;
+        twitchIntegration.enableChatCmds = state.twitchEnableCmds;
         twitchIntegration.connect(state.twitchChannel);
       }
+
+      showSaveToast();
     });
   }
 
@@ -482,6 +496,15 @@ document.addEventListener('DOMContentLoaded', () => {
     enableChatCmdsCheck.addEventListener('change', (e) => {
       state.twitchEnableCmds = e.target.checked;
       if (twitchIntegration) twitchIntegration.enableChatCmds = state.twitchEnableCmds;
+      saveState();
+    });
+  }
+
+  if (twitchRewardInput) {
+    twitchRewardInput.addEventListener('change', (e) => {
+      state.twitchReward = e.target.value.trim() || '抽輪盤';
+      if (twitchIntegration) twitchIntegration.rewardName = state.twitchReward;
+      saveState();
     });
   }
 

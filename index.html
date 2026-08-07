@@ -108,10 +108,7 @@
 
           <div class="setting-group">
             <label for="twitchChannelInput">Twitch 頻道名稱</label>
-            <div style="display: flex; gap: 8px;">
-              <input type="text" id="twitchChannelInput" placeholder="例如: arnold1124" style="flex: 1; padding: 8px 12px; background: var(--apex-card); border: 1px solid var(--apex-border); color: #fff; border-radius: var(--radius-md);">
-              <button id="connectTwitchBtn" class="btn btn-primary" style="padding: 8px 16px;">連線</button>
-            </div>
+            <input type="text" id="twitchChannelInput" placeholder="例如: arnold1124" style="padding: 8px 12px; background: var(--apex-card); border: 1px solid var(--apex-border); color: #fff; border-radius: var(--radius-md);">
           </div>
 
           <div class="setting-group">
@@ -120,11 +117,20 @@
             <span style="font-size: 0.8rem; color: var(--text-sub);">觀眾於 Twitch 兌換此名稱點數時自動觸發抽籤</span>
           </div>
 
-          <div class="setting-group" style="margin-top: 10px;">
+          <div class="setting-group" style="margin-top: 6px;">
             <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
               <input type="checkbox" id="enableChatCmdsCheck" checked style="width: 18px; height: 18px; accent-color: var(--apex-red);">
               <span>開啟聊天室指令 (!spin, !hero, !weapon)</span>
             </label>
+          </div>
+
+          <div style="margin-top: 14px;">
+            <button id="connectTwitchBtn" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px;">
+              儲存設定並連結 Twitch
+            </button>
+            <div id="twitchSaveToast" class="save-toast-banner" style="display: none;">
+              ✓ 設定已成功儲存並套用！
+            </div>
           </div>
         </div>
 
