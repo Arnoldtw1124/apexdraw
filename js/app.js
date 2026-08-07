@@ -1,6 +1,7 @@
 /**
  * Main Application Controller for Apex Legends OBS Plugin
- * Manages Horizontal Hero Reel, Weapon Wheel, Audio, Hotkeys & LocalStorage.
+ * Manages Dual Horizontal Carousels (Hero Reel & Weapon Reel),
+ * Audio, Hotkeys, Filters, & LocalStorage persistence.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -27,10 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize Canvas Elements
   const heroCanvas = document.getElementById('heroReelCanvas');
-  const weaponCanvas = document.getElementById('weaponWheelCanvas');
+  const weaponCanvas = document.getElementById('weaponReelCanvas');
 
   let heroReel = null;
-  let weaponWheel = null;
+  let weaponReel = null;
   let heroDone = false;
   let weaponDone = false;
 
@@ -47,8 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (weaponCanvas) {
-    weaponWheel = new RouletteWheel(weaponCanvas, {
-      title: '槍械輪盤',
+    weaponReel = new WeaponReel(weaponCanvas, {
       items: getFilteredWeapons(),
       duration: state.spinDuration,
       onSpinEnd: (item) => {
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Spin Triggers ---
 
   function spinBoth() {
-    if ((heroReel && heroReel.isSpinning) || (weaponWheel && weaponWheel.isSpinning)) return;
+    if ((heroReel && heroReel.isSpinning) || (weaponReel && weaponReel.isSpinning)) return;
 
     heroDone = false;
     weaponDone = false;
@@ -122,10 +122,10 @@ document.addEventListener('DOMContentLoaded', () => {
       heroReel.spin();
     }
 
-    if (weaponWheel) {
-      weaponWheel.duration = state.spinDuration + 600; // Weapon finishes slightly after hero
-      weaponWheel.setItems(getFilteredWeapons());
-      weaponWheel.spin();
+    if (weaponReel) {
+      weaponReel.duration = state.spinDuration + 600; // Weapon finishes slightly after hero
+      weaponReel.setItems(getFilteredWeapons());
+      weaponReel.spin();
     }
   }
 
@@ -141,13 +141,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function spinWeaponOnly() {
-    if (weaponWheel && !weaponWheel.isSpinning) {
+    if (weaponReel && !weaponReel.isSpinning) {
       heroDone = true;
       weaponDone = false;
       hideResultBanner();
-      weaponWheel.duration = state.spinDuration;
-      weaponWheel.setItems(getFilteredWeapons());
-      weaponWheel.spin();
+      weaponReel.duration = state.spinDuration;
+      weaponReel.setItems(getFilteredWeapons());
+      weaponReel.spin();
     }
   }
 
@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (banner) banner.classList.remove('active');
   }
 
-  // --- Confetti Animation ---
+  // --- Confetti Particle Explosion ---
   function triggerConfetti() {
     const canvas = document.getElementById('confettiCanvas');
     if (!canvas) return;
@@ -343,7 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
           state.activeWeapons = state.activeWeapons.filter(w => w.id !== weapon.id);
         }
         saveState();
-        if (weaponWheel) weaponWheel.setItems(getFilteredWeapons());
+        if (weaponReel) weaponReel.setItems(getFilteredWeapons());
       });
 
       container.appendChild(row);
@@ -380,7 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
       state.activeWeapons = [...APEX_DATA.weapons];
       saveState();
       renderWeaponListEditor();
-      if (weaponWheel) weaponWheel.setItems(getFilteredWeapons());
+      if (weaponReel) weaponReel.setItems(getFilteredWeapons());
     });
   }
 
@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
       state.activeWeapons = [];
       saveState();
       renderWeaponListEditor();
-      if (weaponWheel) weaponWheel.setItems(getFilteredWeapons());
+      if (weaponReel) weaponReel.setItems(getFilteredWeapons());
     });
   }
 

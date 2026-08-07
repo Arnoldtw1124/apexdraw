@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Apex Legends 隨機英雄與槍械輪盤 - OBS Overlay & Plugin</title>
+  <title>Apex Legends 隨機英雄與槍械卡片選單 - OBS Overlay & Plugin</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -28,7 +28,7 @@
     <!-- Main Content Area -->
     <main class="main-content">
       
-      <!-- Left: Wheel & Horizontal Reel Section -->
+      <!-- Left: Dual Horizontal Reel Section -->
       <section class="wheels-section">
 
         <!-- Result Combination Banner -->
@@ -40,17 +40,17 @@
         <div class="wheels-container">
           <!-- Top: Horizontal Hero Selector Reel -->
           <div class="hero-reel-card">
-            <div class="wheel-title">⚡ 英雄卡片選擇器 (HERO SELECTOR - LEFT TO RIGHT REEL)</div>
+            <div class="wheel-title">⚡ 英雄卡片選擇器 (HERO SELECTOR)</div>
             <div class="hero-reel-wrapper">
               <canvas id="heroReelCanvas"></canvas>
             </div>
           </div>
 
-          <!-- Bottom: Weapon Wheel -->
-          <div class="weapon-wheel-card">
-            <div class="wheel-title">⚔️ 槍械輪盤 (WEAPON ROULETTE)</div>
-            <div class="wheel-canvas-wrapper">
-              <canvas id="weaponWheelCanvas"></canvas>
+          <!-- Bottom: Horizontal Weapon Selector Reel -->
+          <div class="hero-reel-card">
+            <div class="wheel-title">⚔️ 槍械卡片選擇器 (WEAPON SELECTOR)</div>
+            <div class="hero-reel-wrapper">
+              <canvas id="weaponReelCanvas"></canvas>
             </div>
           </div>
         </div>
@@ -121,12 +121,12 @@
         <button id="closeModalBtn" class="btn">✖ 關閉</button>
       </div>
       <div class="modal-body">
-        <p>這款輪盤可完美整合至 OBS Studio 做為實況圖層或控制面板：</p>
+        <p>這款雙橫向選單可完美整合至 OBS Studio 做為實況圖層或控制面板：</p>
         <ol>
           <li>
-            <strong>自訂英雄圖片 (PNG Image Import)：</strong>
+            <strong>自訂圖片 (Image Import)：</strong>
             <br>
-            您可將英雄圖片放置於 <code>images/</code> 資料夾中（檔名範例：<code>wraith.png</code>、<code>octane.png</code>、<code>pathfinder.png</code> 等）。系統會自動讀取並顯示在角色卡片上！若尚未放入 PNG 檔，系統會以質感徽章視覺呈現。
+            您可將英雄/槍械圖片放置於 <code>image/</code> 資料夾中。英雄格式為 <code>apex-grid-tile-legends-XXX.avif</code>，槍械格式為 <code>apex-grid-tile-weapons-XXX.avif</code>。
           </li>
           <li>
             <strong>設定為 OBS 實況圖層 (Overlay Mode)：</strong>
@@ -149,6 +149,7 @@
   <script src="js/apex_data.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/hero_reel.js"></script>
+  <script src="js/weapon_reel.js"></script>
   <script src="js/wheel.js"></script>
   <script src="js/app.js"></script>
 </body>
