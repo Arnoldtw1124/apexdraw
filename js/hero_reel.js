@@ -2,7 +2,7 @@
  * Horizontal Hero Character Carousel Selector Reel (HeroReel)
  * 60 FPS smooth physics interpolation, dynamic card bounds scaling,
  * high-contrast bold fonts for OBS stream corner scaling readability.
- * Guaranteed Non-Zero Canvas Bounds & Stuck-Free Safety Protection.
+ * Guaranteed Non-Zero Math & Bounds for OBS CEF Browser Source.
  */
 
 class HeroReel {
@@ -31,8 +31,8 @@ class HeroReel {
     this.resizeCanvas();
     window.addEventListener('resize', () => this.resizeCanvas());
     window.addEventListener('load', () => this.resizeCanvas());
-    setTimeout(() => this.resizeCanvas(), 300);
-    setTimeout(() => this.resizeCanvas(), 1000);
+    setTimeout(() => this.resizeCanvas(), 200);
+    setTimeout(() => this.resizeCanvas(), 800);
   }
 
   preloadImages() {
@@ -102,8 +102,8 @@ class HeroReel {
       height = parent.clientHeight || parent.offsetHeight || 200;
     }
 
-    if (width < 100) width = 800;
-    if (height < 50) height = 200;
+    if (!width || isNaN(width) || width < 150) width = 800;
+    if (!height || isNaN(height) || height < 80) height = 200;
 
     const dpr = window.devicePixelRatio || 1;
 
@@ -112,19 +112,19 @@ class HeroReel {
     this.canvas.style.width = width + 'px';
     this.canvas.style.height = height + 'px';
 
-    this.cardHeight = Math.min(185, height * 0.88);
-    this.cardWidth = Math.round(this.cardHeight * 0.88);
+    this.cardHeight = Math.max(100, Math.min(185, height * 0.88));
+    this.cardWidth = Math.max(90, Math.round(this.cardHeight * 0.88));
 
     this.draw();
   }
 
   spin(targetItemIndex = null) {
-    if (this.items.length === 0) {
+    if (!this.items || this.items.length === 0) {
       if (typeof APEX_DATA !== 'undefined' && APEX_DATA.legends) {
         this.items = [...APEX_DATA.legends];
       }
     }
-    if (this.items.length === 0) return;
+    if (!this.items || this.items.length === 0) return;
 
     if (targetItemIndex === null || targetItemIndex < 0 || targetItemIndex >= this.items.length) {
       targetItemIndex = Math.floor(Math.random() * this.items.length);
@@ -132,7 +132,8 @@ class HeroReel {
     this.winnerIndex = targetItemIndex;
 
     const totalCards = this.items.length;
-    const itemStep = this.cardWidth + this.cardGap;
+    const safeCardWidth = (this.cardWidth && !isNaN(this.cardWidth) && this.cardWidth > 30) ? this.cardWidth : 120;
+    const itemStep = safeCardWidth + this.cardGap;
 
     const minLaps = 5;
     const targetCardPosition = minLaps * totalCards + targetItemIndex;
@@ -165,8 +166,10 @@ class HeroReel {
 
     this.currentOffset = this.startOffset + (this.targetOffset - this.startOffset) * easedProgress;
 
-    const itemStep = this.cardWidth + this.cardGap;
+    const safeCardWidth = (this.cardWidth && !isNaN(this.cardWidth) && this.cardWidth > 30) ? this.cardWidth : 120;
+    const itemStep = safeCardWidth + this.cardGap;
     const currentPassIndex = Math.floor((this.currentOffset + itemStep / 2) / itemStep);
+
     if (currentPassIndex !== this.lastTickCardIndex) {
       this.lastTickCardIndex = currentPassIndex;
       if (window.soundEngine) {
@@ -180,7 +183,7 @@ class HeroReel {
       requestAnimationFrame(() => this.animate());
     } else {
       this.isSpinning = false;
-      const finalItem = this.items[this.winnerIndex >= 0 ? this.winnerIndex : 0];
+      const finalItem = (this.items && this.items.length > 0) ? this.items[this.winnerIndex >= 0 ? this.winnerIndex : 0] : null;
 
       if (window.soundEngine) {
         window.soundEngine.playWin();
@@ -194,8 +197,8 @@ class HeroReel {
 
   draw() {
     const ctx = this.ctx;
-    const w = this.canvas.width;
-    const h = this.canvas.height;
+    const w = this.canvas.width || 800;
+    const h = this.canvas.height || 200;
     const dpr = window.devicePixelRatio || 1;
 
     ctx.clearRect(0, 0, w, h);
@@ -208,14 +211,17 @@ class HeroReel {
       }
     }
 
-    const itemStep = (this.cardWidth + this.cardGap) * dpr;
-    const cardW = this.cardWidth * dpr;
-    const cardH = this.cardHeight * dpr;
+    const safeCardWidth = (this.cardWidth && !isNaN(this.cardWidth) && this.cardWidth > 30) ? this.cardWidth : 120;
+    const safeCardHeight = (this.cardHeight && !isNaN(this.cardHeight) && this.cardHeight > 30) ? this.cardHeight : 140;
+
+    const itemStep = (safeCardWidth + this.cardGap) * dpr;
+    const cardW = safeCardWidth * dpr;
+    const cardH = safeCardHeight * dpr;
     const centerY = (h - cardH) / 2;
     const centerX = w / 2;
 
     const totalItems = this.items.length;
-    const visibleHalfCount = Math.ceil(w / (2 * itemStep)) + 2;
+    const visibleHalfCount = Math.min(15, Math.max(3, Math.ceil(w / (2 * itemStep)) + 2));
 
     const baseIndex = Math.floor((this.currentOffset * dpr) / itemStep);
     const offsetWithinStep = (this.currentOffset * dpr) % itemStep;
@@ -226,7 +232,7 @@ class HeroReel {
       if (wrappedIndex < 0) wrappedIndex += totalItems;
 
       const item = this.items[wrappedIndex];
-      const cardX = centerX - (this.cardWidth * dpr) / 2 + (i * itemStep) - offsetWithinStep;
+      const cardX = centerX - cardW / 2 + (i * itemStep) - offsetWithinStep;
 
       const isWinnerCard = (!this.isSpinning && wrappedIndex === this.winnerIndex && Math.abs(cardX + cardW / 2 - centerX) < itemStep / 2);
 
