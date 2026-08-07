@@ -31,76 +31,38 @@
 
 body {
   font-family: 'Noto Sans TC', 'Orbitron', system-ui, sans-serif;
-  background-color: var(--apex-dark);
-  background-image: 
-    radial-gradient(circle at 15% 20%, rgba(255, 70, 85, 0.12) 0%, transparent 40%),
-    radial-gradient(circle at 85% 80%, rgba(74, 242, 255, 0.08) 0%, transparent 40%);
+  background-color: transparent;
   color: var(--text-main);
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 /* ==========================================================================
-   OBS Stream Overlay Mode: Pure 3-Component Layout (Hero Reel + Gun Reel + Queue)
-   Hides ALL headers, buttons, banners, and config tabs!
+   DEFAULT LAYOUT: Pure Stream Viewer Overlay (3 Components Only!)
+   1. Hero Reel (Top Left)
+   2. Gun Reel (Bottom Left)
+   3. Queue Waitlist (Right Side)
+   Hides ALL headers, spin buttons, banners, and config tabs BY DEFAULT!
    ========================================================================== */
 
-body.overlay-mode {
-  background: transparent !important;
-  overflow: hidden !important;
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: transparent;
 }
 
-body.overlay-mode .app-header,
-body.overlay-mode .control-dock-toggle,
-body.overlay-mode .sidebar-panel,
-body.overlay-mode .spin-action-bar,
-body.overlay-mode .result-banner {
+/* Hide Top Header, Spin Action Buttons, Result Banner, and Sidebar Tabs BY DEFAULT */
+.app-header,
+.spin-action-bar,
+.result-banner,
+.sidebar-panel {
   display: none !important;
 }
 
-body.overlay-mode .app-container {
-  height: 100vh;
-  background: transparent;
-  padding: 0;
-}
-
-body.overlay-mode .main-content {
-  padding: 8px;
-  gap: 12px;
-  height: 100vh;
-  background: transparent;
-}
-
-body.overlay-mode .wheels-section {
-  padding: 0;
-  gap: 10px;
-  background: transparent;
-  justify-content: center;
-}
-
-body.overlay-mode .wheels-container {
-  gap: 10px;
-  height: 100%;
-  justify-content: space-evenly;
-}
-
-body.overlay-mode .hero-reel-card {
-  background: rgba(15, 17, 24, 0.9);
-  border: 1.5px solid rgba(255, 70, 85, 0.5);
-  border-radius: var(--radius-lg);
-  padding: 8px 12px;
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.6);
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-body.overlay-mode .hero-reel-wrapper {
-  height: 230px;
-}
-
-body.overlay-mode .overlay-queue-panel {
+/* Show Pure Stream Queue Panel BY DEFAULT */
+.overlay-queue-panel {
   display: flex !important;
   width: 250px;
   background: rgba(15, 17, 24, 0.92);
@@ -112,43 +74,199 @@ body.overlay-mode .overlay-queue-panel {
   height: 100%;
 }
 
-body.overlay-mode .overlay-queue-title {
+.main-content {
+  display: flex;
+  flex: 1;
+  gap: 12px;
+  padding: 8px;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: transparent;
+}
+
+.wheels-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  height: 100%;
+  overflow: hidden;
+  justify-content: center;
+}
+
+.wheels-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  justify-content: space-evenly;
+}
+
+.hero-reel-card {
+  width: 100%;
+  background: rgba(15, 17, 24, 0.9);
+  border: 1.5px solid rgba(255, 70, 85, 0.5);
+  border-radius: var(--radius-lg);
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.6);
+  flex: 1;
+}
+
+.hero-reel-wrapper {
+  position: relative;
+  width: 100%;
+  height: 230px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wheel-title {
+  font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--accent-cyan);
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Queue Waitlist Panel Styling */
+.overlay-queue-title {
+  font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
   font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--accent-gold);
+  text-align: center;
+  border-bottom: 1px solid var(--apex-border);
   padding-bottom: 6px;
+  letter-spacing: 1px;
 }
 
-body.overlay-mode .overlay-active-card {
+.overlay-active-card {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid #10B981;
+  border-radius: var(--radius-md);
   padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
 }
 
-body.overlay-mode .active-badge-tag {
+.active-badge-tag {
   font-size: 0.75rem;
+  font-weight: 800;
+  color: #10B981;
+  background: rgba(16, 185, 129, 0.2);
+  padding: 2px 8px;
+  border-radius: 10px;
 }
 
-body.overlay-mode .overlay-active-name {
+.overlay-active-name {
   font-size: 1.05rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 0 8px #10B981;
 }
 
-body.overlay-mode .overlay-waitlist-header {
+.overlay-waitlist-header {
   font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-sub);
+  margin-top: 4px;
 }
 
-body.overlay-mode .overlay-wait-row {
+.overlay-waitlist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.overlay-wait-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 6px 10px;
+  border-radius: var(--radius-md);
   font-size: 0.85rem;
+  color: #ffffff;
 }
 
-/* Control Dock Mode (Streamer View): Hide Stream Overlay Panel */
-body:not(.overlay-mode) .overlay-queue-panel {
+.overlay-wait-row .num {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  color: var(--apex-red);
+  min-width: 22px;
+}
+
+.overlay-wait-row .name {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overlay-wait-row.empty {
+  color: var(--text-sub);
+  font-size: 0.8rem;
+  justify-content: center;
+  border-style: dashed;
+}
+
+
+/* ==========================================================================
+   STREAMER CONTROL DOCK MODE (`body.dock-mode` or `?mode=dock`)
+   Only activated in OBS Custom Dock (停駐視窗) for streamer control
+   ========================================================================== */
+
+body.dock-mode {
+  background-color: var(--apex-dark) !important;
+  background-image: 
+    radial-gradient(circle at 15% 20%, rgba(255, 70, 85, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(74, 242, 255, 0.08) 0%, transparent 40%) !important;
+}
+
+body.dock-mode .app-header {
+  display: flex !important;
+}
+
+body.dock-mode .spin-action-bar {
+  display: flex !important;
+}
+
+body.dock-mode .sidebar-panel {
+  display: flex !important;
+}
+
+body.dock-mode .overlay-queue-panel {
   display: none !important;
 }
 
-/* Main Container Layout */
-.app-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
+body.dock-mode .hero-reel-wrapper {
+  height: 160px !important;
+}
+
+body.dock-mode .main-content {
+  height: calc(100vh - 44px) !important;
 }
 
 /* App Header */
@@ -244,147 +362,6 @@ body:not(.overlay-mode) .overlay-queue-panel {
   100% { box-shadow: 0 0 30px rgba(255, 70, 85, 0.8), 0 0 8px #ffffff; }
 }
 
-/* Main Body Layout */
-.main-content {
-  display: flex;
-  flex: 1;
-  gap: 10px;
-  padding: 8px 12px;
-  max-width: 1600px;
-  margin: 0 auto;
-  width: 100%;
-  height: calc(100vh - 44px);
-  overflow: hidden;
-}
-
-.wheels-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  height: 100%;
-  overflow-y: auto;
-}
-
-.wheels-section::-webkit-scrollbar {
-  width: 4px;
-}
-.wheels-section::-webkit-scrollbar-thumb {
-  background: var(--apex-red);
-  border-radius: 2px;
-}
-
-.wheels-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-}
-
-/* Stream Broadcast Overlay Queue Panel */
-.overlay-queue-panel {
-  width: 240px;
-  background: rgba(15, 17, 24, 0.85);
-  border: 1.5px solid var(--apex-border);
-  border-radius: var(--radius-lg);
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-  height: 100%;
-}
-
-.overlay-queue-title {
-  font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
-  font-size: 1.05rem;
-  font-weight: 900;
-  color: var(--accent-gold);
-  text-align: center;
-  border-bottom: 1px solid var(--apex-border);
-  padding-bottom: 6px;
-  letter-spacing: 1px;
-}
-
-.overlay-active-card {
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid #10B981;
-  border-radius: var(--radius-md);
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  text-align: center;
-}
-
-.active-badge-tag {
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: #10B981;
-  background: rgba(16, 185, 129, 0.2);
-  padding: 2px 8px;
-  border-radius: 10px;
-}
-
-.overlay-active-name {
-  font-size: 1.05rem;
-  font-weight: 900;
-  color: #ffffff;
-  text-shadow: 0 0 8px #10B981;
-}
-
-.overlay-waitlist-header {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-sub);
-  margin-top: 4px;
-}
-
-.overlay-waitlist-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  overflow-y: auto;
-  flex: 1;
-}
-
-.overlay-wait-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 6px 10px;
-  border-radius: var(--radius-md);
-  font-size: 0.85rem;
-  color: #ffffff;
-}
-
-.overlay-wait-row .num {
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 900;
-  color: var(--apex-red);
-  min-width: 22px;
-}
-
-.overlay-wait-row .name {
-  font-weight: 700;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.overlay-wait-row.empty {
-  color: var(--text-sub);
-  font-size: 0.8rem;
-  justify-content: center;
-  border-style: dashed;
-}
-
 /* Streamer Queue Control Card (Dock Mode) */
 .queue-control-card {
   width: 100%;
@@ -460,41 +437,6 @@ body:not(.overlay-mode) .overlay-queue-panel {
   padding: 2px 8px;
   border-radius: 10px;
   color: var(--text-sub);
-}
-
-/* Hero Horizontal Reel Container Card */
-.hero-reel-card {
-  width: 100%;
-  background: var(--apex-panel);
-  border: 1px solid var(--apex-border);
-  border-radius: var(--radius-lg);
-  padding: 6px 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-}
-
-.hero-reel-wrapper {
-  position: relative;
-  width: 100%;
-  height: 160px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.wheel-title {
-  font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: var(--accent-cyan);
-  margin-bottom: 2px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
 
 /* Spin Controls Action Bar */

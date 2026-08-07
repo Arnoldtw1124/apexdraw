@@ -2,19 +2,19 @@
  * Main Application Controller for Apex Legends OBS Plugin
  * Manages Dual Horizontal Carousels (Hero Reel & Weapon Reel),
  * Audio, Hotkeys, Filters, Twitch Integration & OBS Server Polling Cross-Process Sync.
- * Anti-Echo: Mutes Dock audio by default so only OBS Overlay Source emits sound.
- * Stream Overlay View: Displays clean Queue Waitlist (#1, #2, #3, #4) for viewers without setting tabs.
+ * DEFAULT VIEW: Pure 3-Component Stream Overlay (Hero + Weapon + Queue Waitlist, ZERO buttons/headers).
+ * STREAMER DOCK VIEW: Activated via `?mode=dock` for streamer controls and settings tabs.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Check URL params for OBS overlay mode & channel parameter
+  // Check URL params for OBS mode & channel parameter
   const urlParams = new URLSearchParams(window.location.search);
-  const isOverlayMode = urlParams.get('mode') === 'overlay' || window.location.search.includes('overlay');
+  const isDockMode = urlParams.get('mode') === 'dock' || window.location.search.includes('dock');
   const urlChannel = urlParams.get('channel') || urlParams.get('twitch');
   const urlReward = urlParams.get('reward');
 
-  if (isOverlayMode) {
-    document.body.classList.add('overlay-mode');
+  if (isDockMode) {
+    document.body.classList.add('dock-mode');
   }
 
   // Application State
@@ -41,12 +41,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function applyAudioMuteState() {
     if (!window.soundEngine) return;
 
-    if (document.body.classList.contains('overlay-mode')) {
-      // OBS Browser Source Overlay ALWAYS plays sound for stream viewers
-      window.soundEngine.setMuted(false);
-    } else {
+    if (document.body.classList.contains('dock-mode')) {
       // Control Panel Dock Muted by default to prevent double sound echo
       window.soundEngine.setMuted(state.muteDockAudio);
+    } else {
+      // Stream Browser Source Overlay ALWAYS plays sound for stream viewers
+      window.soundEngine.setMuted(false);
     }
   }
 
@@ -595,9 +595,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggleViewModeBtn = document.getElementById('toggleViewModeBtn');
   if (toggleViewModeBtn) {
     toggleViewModeBtn.addEventListener('click', () => {
-      document.body.classList.toggle('overlay-mode');
-      const isNowOverlay = document.body.classList.contains('overlay-mode');
-      toggleViewModeBtn.innerText = isNowOverlay ? '⚙️ 切換實況主控制面板' : '🎥 切換直播觀眾畫面 (Overlay)';
+      document.body.classList.toggle('dock-mode');
+      const isNowDock = document.body.classList.contains('dock-mode');
+      toggleViewModeBtn.innerText = isNowDock ? '🎥 切換為直播觀眾畫面' : '⚙️ 切換實況主控制面板';
       applyAudioMuteState();
       if (heroReel) heroReel.resizeCanvas();
       if (weaponReel) weaponReel.resizeCanvas();
